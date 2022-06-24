@@ -98,7 +98,8 @@ public class GeneratorApplication
 			myWriter.write("import org.springframework.web.bind.annotation.RequestMapping;" + ln);
 			myWriter.write("import org.springframework.web.bind.annotation.RestController;" + ln);
 			myWriter.write("import big.open.payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
-			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"Response;" + ln);
+			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"ResponseFindById;" + ln);
+			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"ResponseSave;" + ln);
 			myWriter.write("import big.open.service."+ getNameProperty(tableName, true) +"Service;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
 			myWriter.write("@AllArgsConstructor" + ln);
@@ -113,11 +114,6 @@ public class GeneratorApplication
 			myWriter.write("	public ResponseEntity<"+ getNameProperty(tableName, true) + "ResponseFindById> findById(@PathVariable(\"id\") " + getTypePrimeryKey(entitiName) + " id)" + ln);
 			myWriter.write("	{" + ln);
 			myWriter.write("		return ResponseEntity.ok(" + getNameProperty(tableName, false)+ "Service.findById(id));" + ln);
-			myWriter.write("	}" + ln);
-			myWriter.write("	@PostMapping(\"/signin\")" + ln);
-			myWriter.write("	public ResponseEntity<"+ getNameProperty(tableName, true) + "ResponseSignin> signin(@Valid @RequestBody "+ getNameProperty(tableName, true) + "Request "+ getNameProperty(tableName, false) + "Request) " + ln);
-			myWriter.write("	{" + ln);
-			myWriter.write("		return ResponseEntity.ok(" + getNameProperty(tableName, false)+  "Service.signin(" + getNameProperty(tableName, false)+  "Request));" + ln);
 			myWriter.write("	}" + ln);
 			myWriter.write("	@PostMapping(\"/save\")" + ln);
 			myWriter.write("	public ResponseEntity<"+ getNameProperty(tableName, true) + "ResponseSave> save(@Valid @RequestBody "+ getNameProperty(tableName, true) + "Request "+ getNameProperty(tableName, false) + "Request) " + ln);
@@ -220,6 +216,204 @@ public class GeneratorApplication
 			{
 				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "Response> list" + getNameProperty(relation.getTABLE_NAME(), true) + "Response;" +ln);
 			}
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"Response(" + getTypePrimeryKey(entitiName) + " id)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		super();" + ln);
+			myWriter.write("		this." + getNameProperty(getFieldPrimeryKey(entitiName),false) + " = id;" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
+	private static void createFilesResponseFindById(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(2) + tableName + "FindById.java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package big.open.payload.response;" + ln);
+			myWriter.write("import lombok.AllArgsConstructor;" + ln);
+			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import lombok.NoArgsConstructor;" + ln);
+			myWriter.write("@AllArgsConstructor" + ln);
+			myWriter.write("@NoArgsConstructor" + ln);
+			myWriter.write("@Data" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"ResponseFindById" + ln);	
+			myWriter.write("{" + ln);
+			myWriter.write("	private "+ getNameProperty(tableName, true) +"Response "+ getNameProperty(tableName, false) +"Response;" + ln);
+			myWriter.write("	private String message;" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseFindById("+ getNameProperty(tableName, true) +"Response "+ getNameProperty(tableName, false) +"Response)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		super();" + ln);
+			myWriter.write("		this."+ getNameProperty(tableName, true) +"Response = "+ getNameProperty(tableName, false) +"Response;" + ln);
+			myWriter.write("	}" + ln);
+			
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseFindById(String message) " + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		super();" + ln);
+			myWriter.write("		this.message = message;" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
+	private static void createFilesResponseList(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(2) + tableName + "List.java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package big.open.payload.response;" + ln);
+			myWriter.write("import java.util.List;" + ln);
+			myWriter.write("import lombok.AllArgsConstructor;" + ln);
+			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import lombok.NoArgsConstructor;" + ln);
+			myWriter.write("@AllArgsConstructor" + ln);
+			myWriter.write("@NoArgsConstructor" + ln);
+			myWriter.write("@Data" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"ResponseList" + ln);	
+			myWriter.write("{" + ln);
+			myWriter.write("	private List<"+ getNameProperty(tableName, true) +"Response> list"+ getNameProperty(tableName, true) +"Response;" + ln);
+			myWriter.write("	private Long count;" + ln);
+			myWriter.write("	private String message;" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseList(List<"+ getNameProperty(tableName, true) +"Response> list"+ getNameProperty(tableName, true) +"Response, Long count)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		super();" + ln);
+			myWriter.write("		this.list"+ getNameProperty(tableName, true) +"Response = list"+ getNameProperty(tableName, true) +"Response;" + ln);
+			myWriter.write("		this.count = count;" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
+	private static void createFilesResponseSave(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(2) + tableName + "Save.java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package big.open.payload.response;" + ln);
+			myWriter.write("import java.util.List;" + ln);
+			myWriter.write("import big.open.payload.response.erreor."+ getNameProperty(tableName, true) +"ResponseError;" + ln);
+			myWriter.write("import lombok.AllArgsConstructor;" + ln);
+			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import lombok.NoArgsConstructor;" + ln);
+			myWriter.write("@AllArgsConstructor" + ln);
+			myWriter.write("@NoArgsConstructor" + ln);
+			myWriter.write("@Data" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"ResponseSave" + ln);	
+			myWriter.write("{" + ln);
+			myWriter.write("	private "+ getNameProperty(tableName, true) +"Response "+ getNameProperty(tableName, false) +"Response;" + ln);
+			myWriter.write("	private "+ getNameProperty(tableName, true) +"ResponseError "+ getNameProperty(tableName, false) +"ResponseError;" + ln);
+			myWriter.write("	private String message;" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseSave("+ getNameProperty(tableName, true) +"Response "+ getNameProperty(tableName, false) +"Response)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		super();" + ln);
+			myWriter.write("		this."+ getNameProperty(tableName, false) +"Response = "+ getNameProperty(tableName, false) +"Response;" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseSave("+ getNameProperty(tableName, true) +"ResponseError "+ getNameProperty(tableName, false) +"ResponseError) " + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		super();" + ln);
+			myWriter.write("		this."+ getNameProperty(tableName, false) +"ResponseError = "+ getNameProperty(tableName, false) +"ResponseError;" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseSave(String message) " + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		super();" + ln);
+			myWriter.write("		this.message = message;" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
+	private static void createFilesErreor(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(3) + tableName + ".java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package big.open.payload.response.erreor;" + ln);
+			myWriter.write("import lombok.AllArgsConstructor;" + ln);
+			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import lombok.NoArgsConstructor;" + ln);
+			myWriter.write("@AllArgsConstructor" + ln);
+			myWriter.write("@NoArgsConstructor" + ln);
+			myWriter.write("@Data" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"ResponseError" + ln);	
+			myWriter.write("{" + ln);
+			for(EntityProperty property : entitiName.getListEntityProperty())
+			{
+				if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
+				{
+					myWriter.write("	private String " +  getNameProperty(property.getField(), false)+ ";" + ln) ;
+				}				
+			}
+			myWriter.write("	private boolean have_error;" + ln);
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
+	private static void createFilesRequest(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(4) + tableName + ".java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package big.open.payload.request;" + ln);
+			myWriter.write("import lombok.AllArgsConstructor;" + ln);
+			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import lombok.NoArgsConstructor;" + ln);
+			myWriter.write("@AllArgsConstructor" + ln);
+			myWriter.write("@NoArgsConstructor" + ln);
+			myWriter.write("@Data" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"Request" + ln);	
+			myWriter.write("{" + ln);
+			for(EntityProperty property : entitiName.getListEntityProperty())
+			{
+				if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
+				{
+					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
+				}				
+			}
+			for(String relation : getSingleRelation( tableName))
+			{
+				myWriter.write("	private " + getNameProperty(relation, true) + "Response " + getNameProperty(relation, false) + "Response;" +ln);
+			}
+			var copyListRelation = listRelation;
+			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
+			for(Relations relation : findListRelation)
+			{
+				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "Response> list" + getNameProperty(relation.getTABLE_NAME(), true) + "Response;" +ln);
+			}
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"Request(" + getTypePrimeryKey(entitiName) + " id)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		super();" + ln);
+			myWriter.write("		this." + getNameProperty(getFieldPrimeryKey(entitiName),false) + " = id;" + ln);
+			myWriter.write("	}" + ln);
 			myWriter.write("}" + ln);
 			myWriter.close();
 		}		
@@ -252,13 +446,123 @@ public class GeneratorApplication
 
 		}
 	}
+	private static void createFilesService(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(6) + tableName + ".java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package big.open.service;" + ln);
+			myWriter.write("import java.util.Optional;" + ln);
+			myWriter.write("import org.springframework.beans.factory.annotation.Autowired;" + ln);
+			myWriter.write("import org.springframework.stereotype.Service;" + ln);
+			
+			myWriter.write("import big.open.entity."+ getNameProperty(tableName, true) +";" + ln);
+			myWriter.write("import big.open.payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
+			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"Response;" + ln);
+			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"ResponseFindById;" + ln);
+			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"ResponseSave;" + ln);
+			myWriter.write("import big.open.payload.response.erreor."+ getNameProperty(tableName, true) +"ResponseError;" + ln);
+			myWriter.write("import big.open.repository."+ getNameProperty(tableName, true) +"Repository;" + ln);
+			myWriter.write("import big.open.security.jwt.JwtUtils;" + ln);
+			myWriter.write("import big.open.utility.ObjectMapperUtility;" + ln);
+			myWriter.write("import big.open.utility.Utility;" + ln);
+			myWriter.write("import org.springframework.security.core.context.SecurityContextHolder;" + ln);
+			myWriter.write("import org.springframework.security.authentication.AuthenticationManager;" + ln);
+			myWriter.write("import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;" + ln);
+			myWriter.write("import org.springframework.security.core.Authentication;" + ln);
+			myWriter.write("import org.springframework.security.crypto.password.PasswordEncoder;" + ln);
+			myWriter.write("@Service" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"Service" + ln);
+			myWriter.write("{" + ln);
+			myWriter.write("	@Autowired" + ln);
+			myWriter.write("	JwtUtils jwtUtils;" + ln);			
+			myWriter.write("	@Autowired" + ln);
+			myWriter.write("	AuthenticationManager authenticationManager;" + ln);
+			myWriter.write("	@Autowired" + ln);
+			myWriter.write("	PasswordEncoder encoder;" + ln);
+			myWriter.write("	@Autowired" + ln);
+			myWriter.write("	"+ getNameProperty(tableName, true) +"Repository "+ getNameProperty(tableName, false) +"Repository;" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseFindById findById(" + getTypePrimeryKey(entitiName) + " id)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		Optional<"+ getNameProperty(tableName, true) +"> "+ getNameProperty(tableName, false) +" = "+ getNameProperty(tableName, false) +"Repository.findById(id);" + ln);
+			myWriter.write("		if("+ getNameProperty(tableName, false) +".isPresent())" + ln);
+			myWriter.write("		{" + ln);
+			myWriter.write("			"+ getNameProperty(tableName, true) +"Response "+ getNameProperty(tableName, false) +"Response = ObjectMapperUtility.map("+ getNameProperty(tableName, false) +".get(),"+ getNameProperty(tableName, true) +"Response.class);" + ln);
+			myWriter.write("			return new "+ getNameProperty(tableName, true) +"ResponseFindById("+ getNameProperty(tableName, false) +"Response);" + ln);
+			myWriter.write("		}" + ln);
+			myWriter.write("		return new UserResponseFindById(\"Non trouvé\");" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseSave save("+ getNameProperty(tableName, true) +"Request "+ getNameProperty(tableName, false) +"Request)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		"+ getNameProperty(tableName, true) +"ResponseError "+ getNameProperty(tableName, false) +"ResponseError = check"+ getNameProperty(tableName, true) +"ResponseError("+ getNameProperty(tableName, false) +"Request);" + ln);
+			myWriter.write("		if("+ getNameProperty(tableName, false) +"ResponseError.isHave_error())" + ln);
+			myWriter.write("		{" + ln);
+			myWriter.write("			return new "+ getNameProperty(tableName, true) +"ResponseSave("+ getNameProperty(tableName, false) +"ResponseError);" + ln);
+			myWriter.write("		}" + ln);
+			myWriter.write("		else" + ln);
+			myWriter.write("		{" + ln);
+			myWriter.write("			try" + ln);
+			myWriter.write("			{" + ln);
+			myWriter.write("				"+ getNameProperty(tableName, true) +" "+ getNameProperty(tableName, false) +" = "+ getNameProperty(tableName, false) +"Repository.save(ObjectMapperUtility.map("+ getNameProperty(tableName, false) +"Request, "+ getNameProperty(tableName, true) +".class));" + ln);
+			myWriter.write("				return  new "+ getNameProperty(tableName, true) +"ResponseSave(ObjectMapperUtility.map("+ getNameProperty(tableName, false) +", "+ getNameProperty(tableName, true) +"Response.class));" + ln);
+			myWriter.write("			}" + ln);
+			myWriter.write("			catch(Exception e)" + ln);
+			myWriter.write("			{" + ln);
+			myWriter.write("				"+ getNameProperty(tableName, false) +"ResponseError.setHave_error(true);" + ln);
+			myWriter.write("				return  new "+ getNameProperty(tableName, true) +"ResponseSave(\"Erreur d'enregistrement\");" + ln);
+			myWriter.write("			}" + ln);
+			myWriter.write("		}" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("	public String delete(" + getTypePrimeryKey(entitiName) + " id)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		try" + ln);
+			myWriter.write("		{" + ln);
+			myWriter.write("			var "+ getNameProperty(tableName, false) +" = "+ getNameProperty(tableName, false) +"Repository.findById(id);" + ln);
+			myWriter.write("			if("+ getNameProperty(tableName, false) +".get().getIsDeleted() == 0)" + ln);
+			myWriter.write("				"+ getNameProperty(tableName, false) +".get().setIsDeleted(1);" + ln);
+			myWriter.write("			else" + ln);
+			myWriter.write("				"+ getNameProperty(tableName, false) +".get().setIsDeleted(0);" + ln);
+			myWriter.write("			"+ getNameProperty(tableName, false) +"Repository.save("+ getNameProperty(tableName, false) +".get());" + ln);
+			myWriter.write("			return \"\";" + ln);
+			myWriter.write("		}" + ln);
+			myWriter.write("		catch(Exception e)" + ln);
+			myWriter.write("		{" + ln);
+			myWriter.write("			return \"Erreur de suppression\";" + ln);
+			myWriter.write("		}" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("	private "+ getNameProperty(tableName, true) +"ResponseError check"+ getNameProperty(tableName, true) +"ResponseError ("+ getNameProperty(tableName, true) +"Request "+ getNameProperty(tableName, false) +"Request)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		"+ getNameProperty(tableName, true) +"ResponseError "+ getNameProperty(tableName, true) +"ResponseError = new "+ getNameProperty(tableName, true) +"ResponseError();" + ln);
+			myWriter.write("		"+ getNameProperty(tableName, false) +"ResponseError.setHave_error(false);" + ln);
+			myWriter.write("		//if(Utility.isEmpty("+ getNameProperty(tableName, false) +"Request.get()) )" + ln);
+			myWriter.write("		//{" + ln);
+			myWriter.write("				//"+ getNameProperty(tableName, false) +"ResponseError.setHave_error(true);" + ln);
+			myWriter.write("				//"+ getNameProperty(tableName, false) +"ResponseError.set(\"Le nom d'utilisateur est obligatoire\");" + ln);
+			myWriter.write("		//}" + ln);
+			myWriter.write("		return "+ getNameProperty(tableName, false) +"ResponseError;" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
 	private static void createFilesProgect(EntityName entitiName)
 	{
 		createFilesEntity(entitiName);
 		createFilesController(entitiName);
 		createFilesResponse(entitiName);
+		createFilesResponseFindById(entitiName);
+		createFilesResponseList(entitiName);
+		createFilesResponseSave(entitiName);
+		createFilesErreor(entitiName);
+		createFilesRequest(entitiName);
 		createFilesRepository(entitiName);
-		
+		createFilesService(entitiName);		
 	}
 	private static void createFolderProgect(String tableName)
 	{
@@ -425,6 +729,21 @@ public class GeneratorApplication
 				if(property.getKey().equals("PRI"))
 				{
 					return getTypeProperty(property.getType());
+				}
+			}
+		}
+		catch(Exception e){}
+		return "";
+	}
+	private static String getFieldPrimeryKey(EntityName entitiName)
+	{
+		try
+		{
+			for(EntityProperty property : entitiName.getListEntityProperty())
+			{
+				if(property.getKey().equals("PRI"))
+				{
+					return (property.getField());
 				}
 			}
 		}
