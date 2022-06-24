@@ -19,8 +19,9 @@ public class GeneratorApplication
 	private static String ln = System.getProperty( "line.separator" );
 	private static List<String> files = new ArrayList<>();
 	private static String dataBaseName = "marketplace";
-	private static List<String> tablesName = getListTable();
-	private static List<Relations> listrelation = new ArrayList<>();
+	private static List<String> listTablesName = getListTable();
+	private static List<EntityName> listEntityName = entityFiles();
+	private static List<Relations> listRelation = new ArrayList<>();
 	public static void main(String[] args) 
 	{
 		SpringApplication.run(GeneratorApplication.class, args);
@@ -33,7 +34,7 @@ public class GeneratorApplication
 	{
 		try
 		{
-			for(String tableName: tablesName)
+			for(String tableName: listTablesName)
 			{
 				Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root");  
 				Statement stmt = con.createStatement(); 
@@ -48,7 +49,7 @@ public class GeneratorApplication
 					myRelations.setREFERENCED_TABLE_NAME(rs.getString("REFERENCED_TABLE_NAME"));
 					myRelations.setREFERENCED_COLUMN_NAME(rs.getString("REFERENCED_COLUMN_NAME"));
 					myRelations.setTABLE_NAME(rs.getString("TABLE_NAME"));
-					listrelation.add(myRelations);
+					listRelation.add(myRelations);
 				}
 				con.close();			
 			}
@@ -77,8 +78,9 @@ public class GeneratorApplication
 		files.add(pathRepository);
 		files.add(pathService);
 	}
-	private static void createFilesController(ResultSet rs, String tableName)
+	private static void createFilesController(EntityName entitiName )
 	{
+		String tableName = entitiName.getName();
 		try
 		{
 			String strpath = files.get(0) + tableName + ".java";
@@ -108,7 +110,7 @@ public class GeneratorApplication
 			myWriter.write("	@Autowired" + ln);
 			myWriter.write("	" + getNameProperty(tableName, true) + "Service " + getNameProperty(tableName, false)+  "Service" + ln);
 			myWriter.write("	@GetMapping(\"/findById/{id}\")" + ln); 
-			myWriter.write("	public ResponseEntity<"+ getNameProperty(tableName, true) + "ResponseFindById> findById(@PathVariable(\"id\") Integer id)" + ln);
+			myWriter.write("	public ResponseEntity<"+ getNameProperty(tableName, true) + "ResponseFindById> findById(@PathVariable(\"id\") " + getTypePrimeryKey(entitiName) + " id)" + ln);
 			myWriter.write("	{" + ln);
 			myWriter.write("		return ResponseEntity.ok(" + getNameProperty(tableName, false)+ "Service.findById(id));" + ln);
 			myWriter.write("	}" + ln);
@@ -123,20 +125,21 @@ public class GeneratorApplication
 			myWriter.write("		return ResponseEntity.ok(" + getNameProperty(tableName, false)+  "Service.save(" + getNameProperty(tableName, false)+  "Request));" + ln);
 			myWriter.write("	}" + ln);
 			myWriter.write("	@DeleteMapping(\"/delete/{id}\")" + ln);
-			myWriter.write("	public ResponseEntity<String> delete(@PathVariable(\"id\") Integer id)" + ln);
+			myWriter.write("	public ResponseEntity<String> delete(@PathVariable(\"id\") " + getTypePrimeryKey(entitiName) + " id)" + ln);
 			myWriter.write("	{" + ln);
 			myWriter.write("		return ResponseEntity.ok(" + getNameProperty(tableName, false)+  "Service.delete(id));" + ln);
 			myWriter.write("	}" + ln);
 			myWriter.write("}" + ln);
 			myWriter.close();
-		}
+		}		
 		catch(Exception e)
 		{
 
 		}
 	}
-	private static void createFilesEntity(ResultSet rs, String tableName)
+	private static void createFilesEntity(EntityName entitiName )
 	{
+		String tableName = entitiName.getName();
 		try
 		{ 
 			String strpath = files.get(1) + tableName + ".java";
@@ -153,26 +156,26 @@ public class GeneratorApplication
 			myWriter.write("@Data" + ln);
 			myWriter.write("public class " + getNameProperty(tableName, true) + " " + ln);
 			myWriter.write("{" + ln);
-			while (rs.next())
-			{
-				if(rs.getString("Key").equals("PRI"))
+			for(EntityProperty property : entitiName.getListEntityProperty())
+			{				
+				if(property.getKey().equals("PRI"))
 				{
 					myWriter.write("	@NotNull()" + ln);
 					myWriter.write("	@Id@GeneratedValue(strategy = GenerationType.IDENTITY)" + ln);
-					myWriter.write("	@Column(name=\"" + rs.getString("Field") + "\")" + ln);
-					myWriter.write("	private " + getTypeProperty(rs.getString("Type"))+ " " + getNameProperty(rs.getString("Field"), false)+ ";" + ln) ;
+					myWriter.write("	@Column(name=\"" + property.getField() + "\")" + ln);
+					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}				
-				else if(!rs.getString("Key").equals("MUL"))
+				else if(!property.getKey().equals("MUL"))
 				{
-					myWriter.write("	@Column(name=\"" + rs.getString("Field") + "\")" + ln);
-					myWriter.write("	private " + getTypeProperty(rs.getString("Type"))+ " " + getNameProperty(rs.getString("Field"), false)+ ";" + ln) ;
+					myWriter.write("	@Column(name=\"" + property.getField() + "\")" + ln);
+					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}
 			}
 			for(String relation : getSingleRelation( tableName))
 			{
 				myWriter.write("	private " + getNameProperty(relation, true) + " " + getNameProperty(relation, false) + ";" +ln);
 			}
-			var copyListRelation = listrelation;
+			var copyListRelation = listRelation;
 			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
 			for(Relations relation : findListRelation)
 			{
@@ -184,10 +187,77 @@ public class GeneratorApplication
 		catch(Exception e)
 		{ System.out.println(e);}
 	}
-	private static void createFilesProgect(ResultSet rs, String tableName)
+	private static void createFilesResponse(EntityName entitiName )
 	{
-		createFilesEntity(rs, tableName);
-		createFilesController(rs, tableName);
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(2) + tableName + ".java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package big.open.payload.response;" + ln);
+			myWriter.write("import lombok.AllArgsConstructor;" + ln);
+			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import lombok.NoArgsConstructor;" + ln);
+			myWriter.write("@AllArgsConstructor" + ln);
+			myWriter.write("@NoArgsConstructor" + ln);
+			myWriter.write("@Data" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"Response" + ln);	
+			myWriter.write("{" + ln);
+			for(EntityProperty property : entitiName.getListEntityProperty())
+			{
+				if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
+				{
+					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
+				}				
+			}
+			for(String relation : getSingleRelation( tableName))
+			{
+				myWriter.write("	private " + getNameProperty(relation, true) + "Response " + getNameProperty(relation, false) + "Response;" +ln);
+			}
+			var copyListRelation = listRelation;
+			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
+			for(Relations relation : findListRelation)
+			{
+				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "Response> list" + getNameProperty(relation.getTABLE_NAME(), true) + "Response;" +ln);
+			}
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
+	private static void createFilesRepository(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(5) + tableName + ".java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package big.open.repository;" + ln);
+			myWriter.write("import org.springframework.data.jpa.repository.JpaRepository;" + ln);
+			myWriter.write("import org.springframework.stereotype.Repository;" + ln);
+			myWriter.write("import big.open.entity."+ getNameProperty(tableName, true) +";" + ln);
+			
+			myWriter.write("@Repository" + ln);
+			myWriter.write("public interface "+ getNameProperty(tableName, true) +"Repository extends JpaRepository<"+ getNameProperty(tableName, true) +", " + getTypePrimeryKey(entitiName) + ">" + ln);
+			myWriter.write("{" + ln);
+			myWriter.write("	" + ln);
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
+	private static void createFilesProgect(EntityName entitiName)
+	{
+		createFilesEntity(entitiName);
+		createFilesController(entitiName);
+		createFilesResponse(entitiName);
+		createFilesRepository(entitiName);
 		
 	}
 	private static void createFolderProgect(String tableName)
@@ -225,16 +295,14 @@ public class GeneratorApplication
 		{  
 			Class.forName("com.mysql.cj.jdbc.Driver");  
 			// static List<String> tablesName1 = tablesName;
-			Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root");  
+			
 
-			for(String tableName: tablesName)
-			{
-				Statement stmt = con.createStatement(); 
-				ResultSet rs=stmt.executeQuery("SHOW COLUMNS FROM "+ dataBaseName + "." + tableName );	
-				createFolderProgect(tableName);
-				createFilesProgect(rs, tableName);				
+			for(EntityName entitiName: listEntityName)
+			{				
+				createFolderProgect(entitiName.getName());
+				createFilesProgect(entitiName);				
 			}
-			con.close();
+			
 		}
 		catch(Exception e)
 		{ System.out.println(e);}
@@ -258,6 +326,40 @@ public class GeneratorApplication
 		{
 		}
 		return tablesname;
+	}
+	private static List<EntityName> entityFiles()
+	{
+		List<EntityName> listEntityName = new ArrayList<>();
+		try
+		{
+			
+			Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root");  
+			for(String tableName: listTablesName)
+			{
+				EntityName entityName = new EntityName();
+				entityName.setName(tableName);
+				Statement stmt = con.createStatement(); 
+				ResultSet rs=stmt.executeQuery("SHOW COLUMNS FROM "+ dataBaseName + "." + tableName );	
+				List<EntityProperty> listEntityProperty = new ArrayList<EntityProperty>() ;
+
+				while (rs.next())
+				{
+					EntityProperty f = new EntityProperty();
+					f.setField(rs.getString("Field"));
+					f.setType(rs.getString("Type"));
+					f.setKey(rs.getString("Key"));
+					listEntityProperty.add(f);
+				}
+				entityName.setListEntityProperty(listEntityProperty);
+				listEntityName.add(entityName);
+			}			
+			con.close();
+			
+		}
+		catch(Exception e)
+		{
+		}
+		return listEntityName;
 	}
 	private static List<String> getSingleRelation(String tableName)
 	{
@@ -314,15 +416,15 @@ public class GeneratorApplication
 			myType = "LocalDateTime";
 		return myType;
 	}
-	private static String getPrimeryKey(ResultSet rs)
+	private static String getTypePrimeryKey(EntityName entitiName)
 	{
 		try
 		{
-			while (rs.next())
+			for(EntityProperty property : entitiName.getListEntityProperty())
 			{
-				if(rs.getString("Key").equals("PRI"))
+				if(property.getKey().equals("PRI"))
 				{
-					return rs.getString("Field");
+					return getTypeProperty(property.getType());
 				}
 			}
 		}
