@@ -18,7 +18,9 @@ public class GeneratorApplication
 {
 	private static String ln = System.getProperty( "line.separator" );
 	private static List<String> files = new ArrayList<>();
-	private static String dataBaseName = "big_open";
+	private static String dataBaseName = "marketplace";
+	private static String packageName = "marketplace";
+	private static String propertyIsDeletedName = "is_deleted";
 	private static List<String> listTablesName = getListTable();
 	private static List<EntityName> listEntityName = entityFiles();
 	private static List<Relations> listRelation = new ArrayList<>();
@@ -85,7 +87,7 @@ public class GeneratorApplication
 		{
 			String strpath = files.get(0) +  getNameProperty(tableName, true) + "Controller.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.controller;" + ln);
+			myWriter.write("package "+packageName+".controller;" + ln);
 			myWriter.write("import javax.validation.Valid;" + ln);
 			myWriter.write("import org.springframework.beans.factory.annotation.Autowired;" + ln);
 			myWriter.write("import org.springframework.http.ResponseEntity;" + ln);
@@ -97,10 +99,10 @@ public class GeneratorApplication
 			myWriter.write("import org.springframework.web.bind.annotation.RequestBody;" + ln);
 			myWriter.write("import org.springframework.web.bind.annotation.RequestMapping;" + ln);
 			myWriter.write("import org.springframework.web.bind.annotation.RestController;" + ln);
-			myWriter.write("import big.open.payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
-			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"ResponseFindById;" + ln);
-			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"ResponseSave;" + ln);
-			myWriter.write("import big.open.service."+ getNameProperty(tableName, true) +"Service;" + ln);
+			myWriter.write("import "+packageName+".payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
+			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"ResponseFindById;" + ln);
+			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"ResponseSave;" + ln);
+			myWriter.write("import "+packageName+".service."+ getNameProperty(tableName, true) +"Service;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
 			myWriter.write("@AllArgsConstructor" + ln);
 			myWriter.write("@CrossOrigin(origins = \"*\", maxAge = 3600)" + ln);
@@ -140,14 +142,17 @@ public class GeneratorApplication
 		{ 
 			String strpath = files.get(1) + getNameProperty(tableName, true) + ".java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.entity;" + ln);
+			myWriter.write("package "+packageName+".entity;" + ln);
 			myWriter.write("import javax.persistence.Column;" + ln);
 			myWriter.write("import javax.persistence.Entity;" + ln);
 			myWriter.write("import javax.persistence.GeneratedValue;" + ln);
 			myWriter.write("import javax.persistence.GenerationType;" + ln);
 			myWriter.write("import javax.persistence.Id;" + ln);
 			myWriter.write("import javax.persistence.Table;" + ln);
+			myWriter.write("import javax.persistence.Transient;" + ln);
 			myWriter.write("import java.util.List;" + ln);
+			myWriter.write("import org.springframework.data.geo.Point;" + ln);
+			myWriter.write("import java.time.LocalDateTime;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
 			myWriter.write("import javax.validation.constraints.NotNull;" + ln);
 			myWriter.write("@Data" + ln);
@@ -174,12 +179,14 @@ public class GeneratorApplication
 			}
 			for(String relation : getSingleRelation( tableName))
 			{
+				myWriter.write("	@Transient");
 				myWriter.write("	private " + getNameProperty(relation, true) + " " + getNameProperty(relation, false) + ";" +ln);
 			}
 			var copyListRelation = listRelation;
 			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
 			for(Relations relation : findListRelation)
 			{
+				myWriter.write("	@Transient" + ln);
 				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "> list" + getNameProperty(relation.getTABLE_NAME(), true) + ";" +ln);
 			}
 			myWriter.write("}" + ln);
@@ -195,11 +202,13 @@ public class GeneratorApplication
 		{
 			String strpath = files.get(2) + getNameProperty(tableName, true) + "Response.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.payload.response;" + ln);
+			myWriter.write("package "+packageName+".payload.response;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
 			myWriter.write("import java.util.List;" + ln);
+			myWriter.write("import java.time.LocalDateTime;" + ln);
 			myWriter.write("import lombok.NoArgsConstructor;" + ln);
+			myWriter.write("import org.springframework.data.geo.Point;" + ln);
 			myWriter.write("@AllArgsConstructor" + ln);
 			myWriter.write("@NoArgsConstructor" + ln);
 			myWriter.write("@Data" + ln);
@@ -242,7 +251,7 @@ public class GeneratorApplication
 		{
 			String strpath = files.get(2) + getNameProperty(tableName, true) + "ResponseFindById.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.payload.response;" + ln);
+			myWriter.write("package "+packageName+".payload.response;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
 			myWriter.write("import lombok.NoArgsConstructor;" + ln);
@@ -279,7 +288,7 @@ public class GeneratorApplication
 		{
 			String strpath = files.get(2) + getNameProperty(tableName, true) + "ResponseList.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.payload.response;" + ln);
+			myWriter.write("package "+packageName+".payload.response;" + ln);
 			myWriter.write("import java.util.List;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
@@ -313,8 +322,8 @@ public class GeneratorApplication
 		{
 			String strpath = files.get(2) + getNameProperty(tableName, true) + "ResponseSave.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.payload.response;" + ln);
-			myWriter.write("import big.open.payload.response.error."+ getNameProperty(tableName, true) +"ResponseError;" + ln);
+			myWriter.write("package "+packageName+".payload.response;" + ln);
+			myWriter.write("import "+packageName+".payload.response.error."+ getNameProperty(tableName, true) +"ResponseError;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
 			myWriter.write("import lombok.NoArgsConstructor;" + ln);
@@ -356,7 +365,7 @@ public class GeneratorApplication
 		{
 			String strpath = files.get(3) + getNameProperty(tableName, true) + "ResponseError.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.payload.response.error;" + ln);
+			myWriter.write("package "+packageName+".payload.response.error;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
 			myWriter.write("import lombok.NoArgsConstructor;" + ln);
@@ -390,26 +399,12 @@ public class GeneratorApplication
 			FileWriter myWriter = new FileWriter(strpath);
 			var copyListRelation = listRelation;
 			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
-			myWriter.write("package big.open.payload.request;" + ln);
+			myWriter.write("package "+packageName+".payload.request;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import java.time.LocalDateTime;" + ln);
 			myWriter.write("import java.util.List;" + ln);
-			// List<String> tabImport = new ArrayList<>();
-
-			// for(String relation : getSingleRelation( tableName))
-			// {
-			// 	if(tabImport.stream().filter(element -> element.equals("import big.open.payload.request." + relation + "Request;")).collect(Collectors.toList()).size() == 0)
-			// 		tabImport.add("import big.open.payload.request." + getNameProperty(relation, true)  + "Request;");
-			// }
-			// for(Relations relation : findListRelation)
-			// {
-			// 	if(tabImport.stream().filter(element -> element.equals("import big.open.payload.request." + relation.getTABLE_NAME() + "Request;")).collect(Collectors.toList()).size() == 0)
-			// 		tabImport.add("import big.open.payload.request." + getNameProperty(relation.getTABLE_NAME(), true) + "Request;");
-			// }
-			// for(String element : tabImport)
-			// {
-			// 	myWriter.write(element + ln);
-			// }
+			myWriter.write("import org.springframework.data.geo.Point;" + ln);			
 			myWriter.write("import lombok.NoArgsConstructor;" + ln);
 			myWriter.write("@AllArgsConstructor" + ln);
 			myWriter.write("@NoArgsConstructor" + ln);
@@ -453,10 +448,10 @@ public class GeneratorApplication
 		{
 			String strpath = files.get(5) + getNameProperty(tableName, true) + "Repository.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.repository;" + ln);
+			myWriter.write("package "+packageName+".repository;" + ln);
 			myWriter.write("import org.springframework.data.jpa.repository.JpaRepository;" + ln);
 			myWriter.write("import org.springframework.stereotype.Repository;" + ln);
-			myWriter.write("import big.open.entity."+ getNameProperty(tableName, true) +";" + ln);
+			myWriter.write("import "+packageName+".entity."+ getNameProperty(tableName, true) +";" + ln);
 			
 			myWriter.write("@Repository" + ln);
 			myWriter.write("public interface "+ getNameProperty(tableName, true) +"Repository extends JpaRepository<"+ getNameProperty(tableName, true) +", " + getTypePrimeryKey(entitiName) + ">" + ln);
@@ -477,21 +472,21 @@ public class GeneratorApplication
 		{
 			String strpath = files.get(6) + getNameProperty(tableName, true) + "Service.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package big.open.service;" + ln);
+			myWriter.write("package "+packageName+".service;" + ln);
 			myWriter.write("import java.util.Optional;" + ln);
 			myWriter.write("import org.springframework.beans.factory.annotation.Autowired;" + ln);
 			myWriter.write("import org.springframework.stereotype.Service;" + ln);
 			
-			myWriter.write("import big.open.entity."+ getNameProperty(tableName, true) +";" + ln);
-			myWriter.write("import big.open.payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
-			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"Response;" + ln);
-			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"ResponseFindById;" + ln);
-			myWriter.write("import big.open.payload.response."+ getNameProperty(tableName, true) +"ResponseSave;" + ln);
-			myWriter.write("import big.open.payload.response.error."+ getNameProperty(tableName, true) +"ResponseError;" + ln);
-			myWriter.write("import big.open.repository."+ getNameProperty(tableName, true) +"Repository;" + ln);
-			myWriter.write("import big.open.security.jwt.JwtUtils;" + ln);
-			myWriter.write("import big.open.utility.ObjectMapperUtility;" + ln);
-			myWriter.write("import big.open.utility.Utility;" + ln);
+			myWriter.write("import "+packageName+".entity."+ getNameProperty(tableName, true) +";" + ln);
+			myWriter.write("import "+packageName+".payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
+			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"Response;" + ln);
+			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"ResponseFindById;" + ln);
+			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"ResponseSave;" + ln);
+			myWriter.write("import "+packageName+".payload.response.error."+ getNameProperty(tableName, true) +"ResponseError;" + ln);
+			myWriter.write("import "+packageName+".repository."+ getNameProperty(tableName, true) +"Repository;" + ln);
+			myWriter.write("import "+packageName+".security.jwt.JwtUtils;" + ln);
+			myWriter.write("import "+packageName+".utility.ObjectMapperUtility;" + ln);
+			myWriter.write("import "+packageName+".utility.Utility;" + ln);
 			myWriter.write("import org.springframework.security.core.context.SecurityContextHolder;" + ln);
 			myWriter.write("import org.springframework.security.authentication.AuthenticationManager;" + ln);
 			myWriter.write("import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;" + ln);
@@ -544,10 +539,13 @@ public class GeneratorApplication
 			myWriter.write("		try" + ln);
 			myWriter.write("		{" + ln);
 			myWriter.write("			var "+ getNameProperty(tableName, false) +" = "+ getNameProperty(tableName, false) +"Repository.findById(id);" + ln);
+			if(checkProperty(entitiName,propertyIsDeletedName))
+			{
 			myWriter.write("			if("+ getNameProperty(tableName, false) +".get().getIsDeleted() == 0)" + ln);
 			myWriter.write("				"+ getNameProperty(tableName, false) +".get().setIsDeleted(1);" + ln);
 			myWriter.write("			else" + ln);
 			myWriter.write("				"+ getNameProperty(tableName, false) +".get().setIsDeleted(0);" + ln);
+			}
 			myWriter.write("			"+ getNameProperty(tableName, false) +"Repository.save("+ getNameProperty(tableName, false) +".get());" + ln);
 			myWriter.write("			return \"\";" + ln);
 			myWriter.write("		}" + ln);
@@ -744,6 +742,8 @@ public class GeneratorApplication
 			myType = "LocalDateTime";
 		if(type.equals("tinyint"))
 			myType = "boolean";
+		if(type.equals("point"))
+			myType = "Point";
 		return myType;
 	}
 	private static String getTypePrimeryKey(EntityName entitiName)
@@ -775,5 +775,20 @@ public class GeneratorApplication
 		}
 		catch(Exception e){}
 		return "";
+	}
+	private static boolean checkProperty(EntityName entitiName, String propertyName)
+	{
+		try
+		{
+			for(EntityProperty property : entitiName.getListEntityProperty())
+			{
+				if(property.getField().equals(propertyName))
+				{
+					return true;
+				}
+			}
+		}
+		catch(Exception e){}
+		return false;
 	}
 }
