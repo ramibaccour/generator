@@ -18,8 +18,8 @@ public class GeneratorApplication
 {
 	private static String ln = System.getProperty( "line.separator" );
 	private static List<String> files = new ArrayList<>();
-	private static String dataBaseName = "big_open";
-	private static String packageName = "big.open";
+	private static String dataBaseName = "marketplace";
+	private static String packageName = "marketplace";
 	private static String propertyIsDeletedName = "is_deleted";
 	private static List<String> listTablesName = getListTable();
 	private static List<EntityName> listEntityName = entityFiles();
@@ -558,7 +558,7 @@ public class GeneratorApplication
 			myWriter.write("	{" + ln);
 			myWriter.write("		"+ getNameProperty(tableName, true) +"ResponseError "+ getNameProperty(tableName, false) +"ResponseError = new "+ getNameProperty(tableName, true) +"ResponseError();" + ln);
 			myWriter.write("		"+ getNameProperty(tableName, false) +"ResponseError.setHave_error(false);" + ln);
-			myWriter.write("		if(Utility.isEmpty("+ getNameProperty(tableName, false) +"Request.getId().toString()) )"+ ln);
+			myWriter.write("		if(Utility.isEmpty("+ getNameProperty(tableName, false) +"Request.get"+ getNameProperty(getFieldPrimeryKey(entitiName), true) +"().toString()) )"+ ln);
 			myWriter.write("		{"+ ln);
 			myWriter.write("			"+ getNameProperty(tableName, false) +"Request.set"+ getNameProperty(getFieldPrimeryKey(entitiName), true) +"(-1);"+ ln);
 			myWriter.write("		}"+ ln);
