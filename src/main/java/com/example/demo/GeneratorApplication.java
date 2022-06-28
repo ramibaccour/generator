@@ -511,7 +511,7 @@ public class GeneratorApplication
 			myWriter.write("			"+ getNameProperty(tableName, true) +"Response "+ getNameProperty(tableName, false) +"Response = ObjectMapperUtility.map("+ getNameProperty(tableName, false) +".get(),"+ getNameProperty(tableName, true) +"Response.class);" + ln);
 			myWriter.write("			return new "+ getNameProperty(tableName, true) +"ResponseFindById("+ getNameProperty(tableName, false) +"Response);" + ln);
 			myWriter.write("		}" + ln);
-			myWriter.write("		return new "+ getNameProperty(tableName, true) +"ResponseFindById(\"Non trouvé\");" + ln);
+			myWriter.write("		return new "+ getNameProperty(tableName, true) +"ResponseFindById(\"\");" + ln);
 			myWriter.write("	}" + ln);
 			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseSave save("+ getNameProperty(tableName, true) +"Request "+ getNameProperty(tableName, false) +"Request)" + ln);
 			myWriter.write("	{" + ln);
