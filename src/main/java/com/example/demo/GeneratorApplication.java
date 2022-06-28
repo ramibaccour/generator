@@ -558,7 +558,7 @@ public class GeneratorApplication
 			myWriter.write("	{" + ln);
 			myWriter.write("		"+ getNameProperty(tableName, true) +"ResponseError "+ getNameProperty(tableName, false) +"ResponseError = new "+ getNameProperty(tableName, true) +"ResponseError();" + ln);
 			myWriter.write("		"+ getNameProperty(tableName, false) +"ResponseError.setHave_error(false);" + ln);
-			myWriter.write("		if(Utility.isEmpty("+ getNameProperty(tableName, false) +"Request.get"+ getNameProperty(getFieldPrimeryKey(entitiName), true) +"().toString()) )"+ ln);
+			myWriter.write("		if(Utility.isEmpty("+ getNameProperty(tableName, false) +"Request.get"+ getNameProperty(getFieldPrimeryKey(entitiName), true) +"()) )"+ ln);
 			myWriter.write("		{"+ ln);
 			myWriter.write("			"+ getNameProperty(tableName, false) +"Request.set"+ getNameProperty(getFieldPrimeryKey(entitiName), true) +"(-1);"+ ln);
 			myWriter.write("		}"+ ln);
@@ -738,16 +738,18 @@ public class GeneratorApplication
 		var myType = "";
 		if(type.equals("int"))
 			myType = "Integer";
-		if(type.indexOf("varchar")>=0)
+		else if(type.indexOf("varchar")>=0)
 			myType = "String";
-		if(type.equals("double"))
+		else if(type.equals("double"))
 			myType = "double";
-		if(type.equals("date"))
+		else if(type.equals("date") || type.equals("datetime"))
 			myType = "LocalDateTime";
-		if(type.equals("tinyint"))
+		else if(type.equals("tinyint"))
 			myType = "boolean";
-		if(type.equals("point"))
+		else if(type.equals("point"))
 			myType = "Point";
+		else
+			myType = type;
 		return myType;
 	}
 	private static String getTypePrimeryKey(EntityName entitiName)
