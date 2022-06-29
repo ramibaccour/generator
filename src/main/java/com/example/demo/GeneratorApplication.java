@@ -224,13 +224,13 @@ public class GeneratorApplication
 			}
 			for(String relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	private " + getNameProperty(relation, true) + "Response " + getNameProperty(relation, false) + "Response;" +ln);
+				myWriter.write("	private " + getNameProperty(relation, true) + "Response " + getNameProperty(relation, false) + ";" +ln);
 			}
 			var copyListRelation = listRelation;
 			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
 			for(Relations relation : findListRelation)
 			{
-				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "Response> list" + getNameProperty(relation.getTABLE_NAME(), true) + "Response;" +ln);
+				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "Response> list" + getNameProperty(relation.getTABLE_NAME(), true) + ";" +ln);
 			}
 			myWriter.write("	public "+ getNameProperty(tableName, true) +"Response(" + getTypePrimeryKey(entitiName) + " id)" + ln);
 			myWriter.write("	{" + ln);
@@ -421,13 +421,13 @@ public class GeneratorApplication
 			}
 			for(String relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	private " + getNameProperty(relation, true) + "Request " + getNameProperty(relation, false) + "Request;" +ln);
+				myWriter.write("	private " + getNameProperty(relation, true) + "Request " + getNameProperty(relation, false) + ";" +ln);
 			}
 			
 			
 			for(Relations relation : findListRelation)
 			{
-				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "Request> list" + getNameProperty(relation.getTABLE_NAME(), true) + "Request;" +ln);
+				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "Request> list" + getNameProperty(relation.getTABLE_NAME(), true) + ";" +ln);
 			}
 			myWriter.write("	public "+ getNameProperty(tableName, true) +"Request(" + getTypePrimeryKey(entitiName) + " id)" + ln);
 			myWriter.write("	{" + ln);
