@@ -167,7 +167,8 @@ public class GeneratorApplication
 				if(property.getKey().equals("PRI"))
 				{
 					myWriter.write("	@NotNull()" + ln);
-					myWriter.write("	@Id@GeneratedValue(strategy = GenerationType.IDENTITY)" + ln);
+					myWriter.write("	@Id" + ln);
+					myWriter.write("	@GeneratedValue(strategy = GenerationType.IDENTITY)" + ln);
 					myWriter.write("	@Column(name=\"" + property.getField() + "\")" + ln);
 					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}				
@@ -179,7 +180,7 @@ public class GeneratorApplication
 			}
 			for(String relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	@Transient");
+				myWriter.write("	@Transient" + ln);
 				myWriter.write("	private " + getNameProperty(relation, true) + " " + getNameProperty(relation, false) + ";" +ln);
 			}
 			var copyListRelation = listRelation;
