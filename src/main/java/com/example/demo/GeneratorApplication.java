@@ -745,7 +745,7 @@ public class GeneratorApplication
 			myType = "double";
 		else if(type.equals("date") || type.equals("datetime"))
 			myType = "LocalDateTime";
-		else if(type.equals("tinyint"))
+		else if(type.equals("tinyint") || type.equals("tinyint(1)"))
 			myType = "boolean";
 		else if(type.equals("point"))
 			myType = "Point";
