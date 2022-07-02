@@ -107,7 +107,7 @@ public class GeneratorApplication
 			myWriter.write("@AllArgsConstructor" + ln);
 			myWriter.write("@CrossOrigin(origins = \"*\", maxAge = 3600)" + ln);
 			myWriter.write("@RestController" + ln);
-			myWriter.write("@RequestMapping(\"/api/" + tableName + "\")" + ln);
+			myWriter.write("@RequestMapping(\"/api/" + getNameProperty(tableName, false) + "\")" + ln);
 			myWriter.write("public class "+ getNameProperty(tableName, true) +"Controller " + ln);
 			myWriter.write("{" + ln);
 			myWriter.write("	@Autowired" + ln);
