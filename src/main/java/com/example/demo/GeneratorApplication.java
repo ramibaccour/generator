@@ -18,8 +18,8 @@ public class GeneratorApplication
 {
 	private static String ln = System.getProperty( "line.separator" );
 	private static List<String> files = new ArrayList<>();
-	private static String dataBaseName = "marketplace";
-	private static String packageName = "marketplace";
+	private static String dataBaseName = "big_open";
+	private static String packageName = "big.open";
 	private static String propertyIsDeletedName = "is_deleted";
 	private static List<String> listTablesName = getListTable();
 	private static List<EntityName> listEntityName = entityFiles();
