@@ -18,8 +18,8 @@ public class GeneratorApplication
 {
 	private static String ln = System.getProperty( "line.separator" );
 	private static List<String> files = new ArrayList<>();
-	private static String dataBaseName = "marketplace";
-	private static String packageName = "marketplace";
+	private static String dataBaseName = "big_open";
+	private static String packageName = "big.open";
 	private static String propertyIsDeletedName = "is_deleted";
 	private static List<String> listTablesName = getListTable();
 	private static List<EntityName> listEntityName = entityFiles();
@@ -384,7 +384,7 @@ public class GeneratorApplication
 					myWriter.write("	private String " +  getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}				
 			}
-			myWriter.write("	private boolean have_error;" + ln);
+			myWriter.write("	private boolean haveError;" + ln);
 			myWriter.write("}" + ln);
 			myWriter.close();
 		}		
@@ -519,7 +519,7 @@ public class GeneratorApplication
 			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseSave save("+ getNameProperty(tableName, true) +"Request "+ getNameProperty(tableName, false) +"Request)" + ln);
 			myWriter.write("	{" + ln);
 			myWriter.write("		"+ getNameProperty(tableName, true) +"ResponseError "+ getNameProperty(tableName, false) +"ResponseError = check"+ getNameProperty(tableName, true) +"ResponseError("+ getNameProperty(tableName, false) +"Request);" + ln);
-			myWriter.write("		if("+ getNameProperty(tableName, false) +"ResponseError.isHave_error())" + ln);
+			myWriter.write("		if("+ getNameProperty(tableName, false) +"ResponseError.isHaveError())" + ln);
 			myWriter.write("		{" + ln);
 			myWriter.write("			return new "+ getNameProperty(tableName, true) +"ResponseSave("+ getNameProperty(tableName, false) +"ResponseError);" + ln);
 			myWriter.write("		}" + ln);
@@ -532,7 +532,7 @@ public class GeneratorApplication
 			myWriter.write("			}" + ln);
 			myWriter.write("			catch(Exception e)" + ln);
 			myWriter.write("			{" + ln);
-			myWriter.write("				"+ getNameProperty(tableName, false) +"ResponseError.setHave_error(true);" + ln);
+			myWriter.write("				"+ getNameProperty(tableName, false) +"ResponseError.setHaveError(true);" + ln);
 			myWriter.write("				return  new "+ getNameProperty(tableName, true) +"ResponseSave(\"Erreur d'enregistrement\");" + ln);
 			myWriter.write("			}" + ln);
 			myWriter.write("		}" + ln);
@@ -560,14 +560,14 @@ public class GeneratorApplication
 			myWriter.write("	private "+ getNameProperty(tableName, true) +"ResponseError check"+ getNameProperty(tableName, true) +"ResponseError ("+ getNameProperty(tableName, true) +"Request "+ getNameProperty(tableName, false) +"Request)" + ln);
 			myWriter.write("	{" + ln);
 			myWriter.write("		"+ getNameProperty(tableName, true) +"ResponseError "+ getNameProperty(tableName, false) +"ResponseError = new "+ getNameProperty(tableName, true) +"ResponseError();" + ln);
-			myWriter.write("		"+ getNameProperty(tableName, false) +"ResponseError.setHave_error(false);" + ln);
+			myWriter.write("		"+ getNameProperty(tableName, false) +"ResponseError.setHaveError(false);" + ln);
 			myWriter.write("		if(Utility.isEmpty("+ getNameProperty(tableName, false) +"Request.get"+ getNameProperty(getFieldPrimeryKey(entitiName), true) +"()) )"+ ln);
 			myWriter.write("		{"+ ln);
 			myWriter.write("			"+ getNameProperty(tableName, false) +"Request.set"+ getNameProperty(getFieldPrimeryKey(entitiName), true) +"(-1);"+ ln);
 			myWriter.write("		}"+ ln);
 			myWriter.write("		//if(Utility.isEmpty("+ getNameProperty(tableName, false) +"Request.get()) )" + ln);
 			myWriter.write("		//{" + ln);
-			myWriter.write("				//"+ getNameProperty(tableName, false) +"ResponseError.setHave_error(true);" + ln);
+			myWriter.write("				//"+ getNameProperty(tableName, false) +"ResponseError.setHaveError(true);" + ln);
 			myWriter.write("				//"+ getNameProperty(tableName, false) +"ResponseError.set(\"Le nom d'utilisateur est obligatoire\");" + ln);
 			myWriter.write("		//}" + ln);
 			myWriter.write("		return "+ getNameProperty(tableName, false) +"ResponseError;" + ln);
