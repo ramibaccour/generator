@@ -159,6 +159,8 @@ public class GeneratorApplication
 			
 
 			myWriter.write("@Entity" + ln);
+			myWriter.write("@AllArgsConstructor" + ln);
+			myWriter.write("@NoArgsConstructor" + ln);
 			myWriter.write("@Table(name = \"" + tableName +"\")" + ln);
 			myWriter.write("public class " + getNameProperty(tableName, true) + " " + ln);
 			myWriter.write("{" + ln);
