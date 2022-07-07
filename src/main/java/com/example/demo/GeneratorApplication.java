@@ -1,5 +1,4 @@
 package com.example.demo;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
@@ -18,8 +17,8 @@ public class GeneratorApplication
 {
 	private static String ln = System.getProperty( "line.separator" );
 	private static List<String> files = new ArrayList<>();
-	private static String dataBaseName = "big_open";
-	private static String packageName = "big.open";
+	private static String dataBaseName = "marketplace";
+	private static String packageName = "marketplace";
 	private static String propertyIsDeletedName = "is_deleted";
 	private static List<String> listTablesName = getListTable();
 	private static List<EntityName> listEntityName = entityFiles();
@@ -414,6 +413,8 @@ public class GeneratorApplication
 			myWriter.write("@Data" + ln);
 			myWriter.write("public class "+ getNameProperty(tableName, true) +"Request" + ln);	
 			myWriter.write("{" + ln);
+			myWriter.write("	private Integer page;" + ln);
+			myWriter.write("	private Integer size;" + ln);
 			for(EntityProperty property : entitiName.getListEntityProperty())
 			{
 				if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
