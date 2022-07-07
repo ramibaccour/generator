@@ -153,6 +153,8 @@ public class GeneratorApplication
 			myWriter.write("import org.springframework.data.geo.Point;" + ln);
 			myWriter.write("import java.time.LocalDateTime;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import lombok.AllArgsConstructor;" + ln);
+			myWriter.write("import lombok.NoArgsConstructor;" + ln);
 			myWriter.write("import javax.validation.constraints.NotNull;" + ln);
 			myWriter.write("@Data" + ln);
 			
