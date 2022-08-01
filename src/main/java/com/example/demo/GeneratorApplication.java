@@ -530,6 +530,11 @@ public class GeneratorApplication
 			myWriter.write("		{" + ln);
 			myWriter.write("			try" + ln);
 			myWriter.write("			{" + ln);
+			if(checkProperty(entitiName,propertyIsDeletedName))
+			{		
+				myWriter.write("				if("+ getNameProperty(tableName, false) +"Request.get" + getNameProperty(getFieldPrimeryKey(entitiName),true) + "() == -1)" + ln);
+				myWriter.write("					"+ getNameProperty(tableName, false) +"Request.setIsDeleted(0);" + ln);
+			}
 			myWriter.write("				"+ getNameProperty(tableName, true) +" "+ getNameProperty(tableName, false) +" = "+ getNameProperty(tableName, false) +"Repository.save(ObjectMapperUtility.map("+ getNameProperty(tableName, false) +"Request, "+ getNameProperty(tableName, true) +".class));" + ln);
 			myWriter.write("				return  new "+ getNameProperty(tableName, true) +"ResponseSave(ObjectMapperUtility.map("+ getNameProperty(tableName, false) +", "+ getNameProperty(tableName, true) +"Response.class));" + ln);
 			myWriter.write("			}" + ln);
