@@ -35,11 +35,10 @@ public class GeneratorApplication
 	{
 		try
 		{
-			for(String tableName: listTablesName)
-			{
-				Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root");  
+			Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root"); 
+			
 				Statement stmt = con.createStatement(); 
-				String sql = " SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = \"" +  dataBaseName + "\" AND TABLE_NAME = \"" + tableName + "\" AND REFERENCED_COLUMN_NAME IS NOT NULL;";
+				String sql = " SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = \"" +  dataBaseName  + "\" AND REFERENCED_COLUMN_NAME IS NOT NULL;";
 				
 				ResultSet rs = stmt.executeQuery(sql );			
 				while (rs.next())
@@ -51,9 +50,9 @@ public class GeneratorApplication
 					myRelations.setREFERENCED_COLUMN_NAME(rs.getString("REFERENCED_COLUMN_NAME"));
 					myRelations.setTABLE_NAME(rs.getString("TABLE_NAME"));
 					listRelation.add(myRelations);
-				}
-				con.close();			
-			}
+				}			
+			
+			con.close();
 		}
 		catch(Exception e)
 		{
@@ -147,8 +146,15 @@ public class GeneratorApplication
 			myWriter.write("import javax.persistence.GeneratedValue;" + ln);
 			myWriter.write("import javax.persistence.GenerationType;" + ln);
 			myWriter.write("import javax.persistence.Id;" + ln);
+			myWriter.write("import javax.persistence.JoinColumn;" + ln);
+			myWriter.write("import javax.persistence.JoinTable;" + ln);
 			myWriter.write("import javax.persistence.Table;" + ln);
-			myWriter.write("import javax.persistence.Transient;" + ln);
+			myWriter.write("import javax.persistence.FetchType;" + ln);	
+			myWriter.write("import java.util.Set;" + ln);
+			myWriter.write("import java.util.HashSet;" + ln);
+			myWriter.write("import javax.persistence.ManyToOne;" + ln);
+			myWriter.write("import javax.persistence.OneToMany;" + ln);
+			myWriter.write("import javax.persistence.ManyToMany;" + ln);	
 			myWriter.write("import java.util.List;" + ln);
 			myWriter.write("import org.springframework.data.geo.Point;" + ln);
 			myWriter.write("import java.time.LocalDateTime;" + ln);
@@ -165,6 +171,7 @@ public class GeneratorApplication
 			myWriter.write("@Table(name = \"" + tableName +"\")" + ln);
 			myWriter.write("public class " + getNameProperty(tableName, true) + " " + ln);
 			myWriter.write("{" + ln);
+			List<EntityProperty> listSingleRelationProperty = new ArrayList<>();
 			for(EntityProperty property : entitiName.getListEntityProperty())
 			{				
 				if(property.getKey().equals("PRI"))
@@ -180,18 +187,39 @@ public class GeneratorApplication
 					myWriter.write("	@Column(name=\"" + property.getField() + "\")" + ln);
 					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}
+				else
+					listSingleRelationProperty.add(property);
 			}
-			for(String relation : getSingleRelation( tableName))
+			for(Relations relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	@Transient" + ln);
-				myWriter.write("	private " + getNameProperty(relation, true) + " " + getNameProperty(relation, false) + ";" +ln);
+				myWriter.write("	@ManyToOne(fetch = FetchType.EAGER)" + ln);
+				myWriter.write("	@JoinColumn(name = \""+ relation.getCOLUMN_NAME() +"\")" + ln);
+				myWriter.write("	private " + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + " " +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ";" +ln);
 			}
 			var copyListRelation = listRelation;
 			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
 			for(Relations relation : findListRelation)
 			{
-				myWriter.write("	@Transient" + ln);
-				myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "> list" + getNameProperty(relation.getTABLE_NAME(), true) + ";" +ln);
+				if(checkManyToMany(relation.getTABLE_NAME(), tableName))
+				{
+					
+					//name = "users_roles",  joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id")
+					var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
+					if(listForeignKey.size() == 2)
+					{
+						myWriter.write("	@ManyToMany(fetch = FetchType.EAGER)" + ln);
+						myWriter.write("	@JoinTable(name = \""+ relation.getTABLE_NAME() +"\", joinColumns = @JoinColumn(name = \"" + listForeignKey.get(0) + "\"), inverseJoinColumns = @JoinColumn(name = \""+  listForeignKey.get(1) +"\"))" + ln);
+						myWriter.write("	private Set<" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + "> list" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + " = new HashSet<" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + ">();" +ln);
+					}
+						
+				}
+				// else
+				// {
+				// 	myWriter.write("	@OneToMany(fetch = FetchType.EAGER)" + ln);
+				// 	myWriter.write("	@JoinColumn(name = \""+ relation.getCOLUMN_NAME() +"\")" + ln);
+				// 	myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "> list" + getNameProperty(relation.getTABLE_NAME(), true) + ";" +ln);
+				// }				
+				
 			}
 			myWriter.write("}" + ln);
 			myWriter.close();
@@ -225,9 +253,9 @@ public class GeneratorApplication
 					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}				
 			}
-			for(String relation : getSingleRelation( tableName))
+			for(Relations relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	private " + getNameProperty(relation, true) + "Response " + getNameProperty(relation, false) + ";" +ln);
+				myWriter.write("	private " + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "Response " +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ";" +ln);
 			}
 			var copyListRelation = listRelation;
 			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
@@ -424,11 +452,10 @@ public class GeneratorApplication
 					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}				
 			}
-			for(String relation : getSingleRelation( tableName))
+			for(Relations relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	private " + getNameProperty(relation, true) + "Request " + getNameProperty(relation, false) + ";" +ln);
+				myWriter.write("	private " + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "Request " +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ";" +ln);
 			}
-			
 			
 			for(Relations relation : findListRelation)
 			{
@@ -702,26 +729,33 @@ public class GeneratorApplication
 		}
 		return listEntityName;
 	}
-	private static List<String> getSingleRelation(String tableName)
+	private static List<Relations> getSingleRelation(String tableName)
 	{
-		List<String> tablesname = new ArrayList<>();
-		try
-		{
-			Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root");  
-			Statement stmt = con.createStatement(); 
-			String sql = " SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = \"" +  dataBaseName + "\" AND TABLE_NAME = \"" + tableName + "\" AND REFERENCED_COLUMN_NAME IS NOT NULL;";
-			
-			ResultSet rs = stmt.executeQuery(sql );			
-			while (rs.next())
-			{
-				tablesname.add(rs.getString("REFERENCED_TABLE_NAME"));
-			}
-			con.close();
-		}
-		catch(Exception e)
-		{
-			System.out.println(e);
-		}
+		List<Relations> tablesname = listRelation.stream().filter(r -> r.getTABLE_NAME().equals(tableName)).collect(Collectors.toList());
+//		try
+//		{
+//			Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root");  
+//			Statement stmt = con.createStatement(); 
+//			String sql = " SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = \"" +  dataBaseName + "\" AND TABLE_NAME = \"" + tableName + "\" AND REFERENCED_COLUMN_NAME IS NOT NULL;";
+//			
+//			ResultSet rs = stmt.executeQuery(sql );			
+//			
+//			while (rs.next())
+//			{
+//				Relations myRelations = new Relations();
+//				myRelations.setCOLUMN_NAME(rs.getString("COLUMN_NAME"));
+//				myRelations.setCONSTRAINT_NAME(rs.getString("CONSTRAINT_NAME"));
+//				myRelations.setREFERENCED_TABLE_NAME(rs.getString("REFERENCED_TABLE_NAME"));
+//				myRelations.setREFERENCED_COLUMN_NAME(rs.getString("REFERENCED_COLUMN_NAME"));
+//				myRelations.setTABLE_NAME(rs.getString("TABLE_NAME"));
+//				tablesname.add(myRelations);
+//			}
+//			con.close();
+//		}
+//		catch(Exception e)
+//		{
+//			System.out.println(e);
+//		}
 		return tablesname;
 	}
 	private  static String getNameProperty(String propetyName, Boolean isClass)
@@ -807,5 +841,48 @@ public class GeneratorApplication
 		}
 		catch(Exception e){}
 		return false;
+	}
+	private static boolean checkManyToMany(String entitiName1, String entitiName2)
+	{
+		var isManyToMany = true;
+		var tabEntity = entitiName1.split("_");
+		if(tabEntity.length == 2 && entitiName2.equals(tabEntity[0]))
+		{
+			for(String entity : tabEntity)
+			{
+				if(listTablesName.stream().filter(e -> e.equals(entity)).count()==0)
+					isManyToMany = false;				
+			}
+		}
+		else
+			isManyToMany = false;
+		return isManyToMany;
+	}
+	private static String getNameEntity(String nameEntity1, String nameEntity2)
+	{
+		var tabEntity = nameEntity2.split("_");
+		if(!tabEntity[0].equals(nameEntity1))
+		{
+			return tabEntity[0];
+		}
+		else
+			return tabEntity[1];
+	}
+	private static List<String> getListForeignKey(String entitiName)
+	{
+		List<String> listForeignKey = new ArrayList<String>();
+		var tabEntity = entitiName.split("_");
+		if(tabEntity.length == 2)
+		{
+			var listFindRelation = listRelation.stream().filter(relation -> relation.getTABLE_NAME().equals(entitiName)).collect(Collectors.toList());
+			for(Relations relation : listFindRelation)
+			{
+				if(relation.getREFERENCED_TABLE_NAME().equals(tabEntity[0]) || relation.getREFERENCED_TABLE_NAME().equals(tabEntity[1]))
+				{
+					listForeignKey.add(relation.getCOLUMN_NAME());
+				}
+			}
+		}
+		return listForeignKey;
 	}
 }
