@@ -870,8 +870,11 @@ public class GeneratorApplication
 		{
 			return tabEntity[0];
 		}
-		else
+		else if(tabEntity.length>1)
 			return tabEntity[1];
+		else
+			return tabEntity[0];
+		
 	}
 	private static List<String> getListForeignKey(String entitiName)
 	{
