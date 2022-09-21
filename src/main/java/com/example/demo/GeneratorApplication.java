@@ -171,7 +171,6 @@ public class GeneratorApplication
 			myWriter.write("@Table(name = \"" + tableName +"\")" + ln);
 			myWriter.write("public class " + getNameProperty(tableName, true) + " " + ln);
 			myWriter.write("{" + ln);
-			List<EntityProperty> listSingleRelationProperty = new ArrayList<>();
 			for(EntityProperty property : entitiName.getListEntityProperty())
 			{				
 				if(property.getKey().equals("PRI"))
@@ -182,45 +181,50 @@ public class GeneratorApplication
 					myWriter.write("	@Column(name=\"" + property.getField() + "\")" + ln);
 					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}				
-				else if(!property.getKey().equals("MUL"))
+				else //if(!property.getKey().equals("MUL"))
 				{
 					myWriter.write("	@Column(name=\"" + property.getField() + "\")" + ln);
 					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
 				}
-				else
-					listSingleRelationProperty.add(property);
 			}
 			for(Relations relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	@ManyToOne(fetch = FetchType.EAGER)" + ln);
-				myWriter.write("	@JoinColumn(name = \""+ relation.getCOLUMN_NAME() +"\")" + ln);
+				// myWriter.write("	@ManyToOne(fetch = FetchType.EAGER)" + ln);
+				// myWriter.write("	@JoinColumn(name = \""+ relation.getCOLUMN_NAME() +"\")" + ln);
+				myWriter.write("	@Transient" + ln);
 				myWriter.write("	private " + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + " " +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ";" +ln);
 			}
 			var copyListRelation = listRelation;
 			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
 			for(Relations relation : findListRelation)
 			{
-				if(checkManyToMany(relation.getTABLE_NAME(), tableName))
-				{
-					
-					//name = "users_roles",  joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id")
-					var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
-					if(listForeignKey.size() == 2)
-					{
-						myWriter.write("	@ManyToMany(fetch = FetchType.EAGER)" + ln);
-						myWriter.write("	@JoinTable(name = \""+ relation.getTABLE_NAME() +"\", joinColumns = @JoinColumn(name = \"" + listForeignKey.get(0) + "\"), inverseJoinColumns = @JoinColumn(name = \""+  listForeignKey.get(1) +"\"))" + ln);
-						myWriter.write("	private Set<" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + "> list" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + " = new HashSet<" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + ">();" +ln);
-					}
-						
-				}
-				// else
-				// {
-				// 	myWriter.write("	@OneToMany(fetch = FetchType.EAGER)" + ln);
-				// 	myWriter.write("	@JoinColumn(name = \""+ relation.getCOLUMN_NAME() +"\")" + ln);
-				// 	myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "> list" + getNameProperty(relation.getTABLE_NAME(), true) + ";" +ln);
-				// }				
-				
+				myWriter.write("	@Transient" + ln);
+				myWriter.write("	private List<" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + "> list" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + ";" +ln);// " = new HashSet<" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + ">();" +ln);
 			}
+			// for(Relations relation : findListRelation)
+			// {
+			// 	if(checkManyToMany(relation.getTABLE_NAME(), tableName))
+			// 	{
+					
+			// 		//name = "users_roles",  joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id")
+			// 		var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
+			// 		if(listForeignKey.size() == 2)
+			// 		{
+			// 			// myWriter.write("	@ManyToMany(fetch = FetchType.EAGER)" + ln);
+			// 			// myWriter.write("	@JoinTable(name = \""+ relation.getTABLE_NAME() +"\", joinColumns = @JoinColumn(name = \"" + listForeignKey.get(0) + "\"), inverseJoinColumns = @JoinColumn(name = \""+  listForeignKey.get(1) +"\"))" + ln);
+			// 			myWriter.write("	@Transient" + ln);
+			// 			myWriter.write("	private List<" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + "> list" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + ";" +ln);// " = new HashSet<" + getNameProperty(getNameEntity(tableName, relation.getTABLE_NAME()), true) + ">();" +ln);
+			// 		}
+						
+			// 	}
+			// 	// else
+			// 	// {
+			// 	// 	myWriter.write("	@OneToMany(fetch = FetchType.EAGER)" + ln);
+			// 	// 	myWriter.write("	@JoinColumn(name = \""+ relation.getCOLUMN_NAME() +"\")" + ln);
+			// 	// 	myWriter.write("	private List<" + getNameProperty(relation.getTABLE_NAME(), true) + "> list" + getNameProperty(relation.getTABLE_NAME(), true) + ";" +ln);
+			// 	// }				
+				
+			// }
 			myWriter.write("}" + ln);
 			myWriter.close();
 		}
@@ -248,10 +252,10 @@ public class GeneratorApplication
 			myWriter.write("{" + ln);
 			for(EntityProperty property : entitiName.getListEntityProperty())
 			{
-				if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
-				{
+				// if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
+				// {
 					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
-				}				
+				// }				
 			}
 			for(Relations relation : getSingleRelation( tableName))
 			{
@@ -447,10 +451,10 @@ public class GeneratorApplication
 			myWriter.write("	private Integer size;" + ln);
 			for(EntityProperty property : entitiName.getListEntityProperty())
 			{
-				if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
-				{
+				// if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
+				// {
 					myWriter.write("	private " + getTypeProperty(property.getType())+ " " + getNameProperty(property.getField(), false)+ ";" + ln) ;
-				}				
+				// }				
 			}
 			for(Relations relation : getSingleRelation( tableName))
 			{
