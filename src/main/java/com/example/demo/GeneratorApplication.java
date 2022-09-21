@@ -149,6 +149,7 @@ public class GeneratorApplication
 			myWriter.write("import javax.persistence.JoinColumn;" + ln);
 			myWriter.write("import javax.persistence.JoinTable;" + ln);
 			myWriter.write("import javax.persistence.Table;" + ln);
+			myWriter.write("import javax.persistence.Transient;" + ln);
 			myWriter.write("import javax.persistence.FetchType;" + ln);	
 			myWriter.write("import java.util.Set;" + ln);
 			myWriter.write("import java.util.HashSet;" + ln);
