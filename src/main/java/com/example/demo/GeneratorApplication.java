@@ -533,9 +533,11 @@ public class GeneratorApplication
 			myWriter.write("@Repository" + ln);
 			myWriter.write("public interface "+ getNameProperty(tableName, true) +"Repository extends JpaRepository<"+ getNameProperty(tableName, true) +", " + getTypePrimeryKey(entitiName) + ">" + ln);
 			myWriter.write("{" + ln);
+			myWriter.write("	Optional<List<" + getNameProperty(tableName, true) + ">> findBy"  + getNameProperty(getFieldPrimeryKey(entitiName), true) + "In(List<"+ getTypePrimeryKey(entitiName) +"> list"+ getNameProperty(getFieldPrimeryKey(entitiName), true) + ");" + ln);
 			for(Relations relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	Optional<List<"+ getNameProperty(relation.getTABLE_NAME(), true) + ">> findBy"+ getNameProperty(relation.getCOLUMN_NAME(), true) +"(Integer "+ getNameProperty(relation.getCOLUMN_NAME(), false) + ");" + ln);
+				myWriter.write("	Optional<List<" + getNameProperty(relation.getTABLE_NAME(), true) + ">> findBy"+ getNameProperty(relation.getCOLUMN_NAME(), true) +"(Integer "+ getNameProperty(relation.getCOLUMN_NAME(), false) + ");" + ln);
+				
 			}
 
 
@@ -553,14 +555,13 @@ public class GeneratorApplication
 						var entity = getNameEntity(tableName, relation.getTABLE_NAME());
 						if(entity != "")
 						{
-							//@Query(value = "select * from categorie inner join article_categorie on categorie.id = article_categorie.id_categorie where article_categorie.id_article =?1", nativeQuery = true)
 							myWriter.write("	@Query(value = \"select * from "+ tableName + " inner join " + relation.getTABLE_NAME() + " on " + tableName  + "." + getFieldPrimeryKey(entitiName) + " = " + relation.getTABLE_NAME() + "." + relation.getCOLUMN_NAME() + " where " + relation.getTABLE_NAME() + "."+ listForeignKey.get(0)+ " =?1\", nativeQuery = true)" + ln);
 							myWriter.write("	Optional<List<"+ getNameProperty(tableName, true) + ">> findBy" + getNameProperty(listForeignKey.get(0), true) + "(Integer " + getNameProperty(listForeignKey.get(0), false) + ");" + ln);
-							//Optional<List<Categorie>> findByIdArticle(Integer Article);
 						}
 					}
 				}
 			}
+			//Optional<List<Fournisseur>> findByIdIn(List<Integer> listIfFournisseur);
 			myWriter.write("	" + ln);
 			myWriter.write("}" + ln);
 			myWriter.close();
@@ -582,8 +583,7 @@ public class GeneratorApplication
 			myWriter.write("package "+packageName+".service;" + ln);
 			myWriter.write("import java.util.Optional;" + ln);
 			myWriter.write("import org.springframework.beans.factory.annotation.Autowired;" + ln);
-			myWriter.write("import org.springframework.stereotype.Service;" + ln);
-			
+			myWriter.write("import org.springframework.stereotype.Service;" + ln);			//
 			myWriter.write("import "+packageName+".entity."+ getNameProperty(tableName, true) +";" + ln);
 			myWriter.write("import "+packageName+".payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
 			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"Response;" + ln);
@@ -598,6 +598,7 @@ public class GeneratorApplication
 				{
 					listImport.add(relation.getREFERENCED_TABLE_NAME());
 					myWriter.write("import "+packageName+".repository."+ getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) +"Repository;" + ln);
+					myWriter.write("import "+packageName+".entity."+ getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) +";" + ln);
 				}
 			}
 			for(Relations relation : findListRelation)
@@ -612,6 +613,8 @@ public class GeneratorApplication
 			myWriter.write("import "+packageName+".utility.ObjectMapperUtility;" + ln);
 			myWriter.write("import "+packageName+".utility.Utility;" + ln);
 			myWriter.write("import org.springframework.security.core.context.SecurityContextHolder;" + ln);
+			myWriter.write("import java.util.List;" + ln);
+			myWriter.write("import java.util.stream.Collectors;" + ln);
 			myWriter.write("import org.springframework.security.authentication.AuthenticationManager;" + ln);
 			myWriter.write("import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;" + ln);
 			myWriter.write("import org.springframework.security.core.Authentication;" + ln);
@@ -716,7 +719,23 @@ public class GeneratorApplication
 					myWriter.write("			if(" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ".isPresent())" + ln);
 					myWriter.write("				" + getNameProperty(tableName, false) + ".set" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "(" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ".get());" + ln);
 					myWriter.write("		}" + ln);
-					myWriter.write("	}" + ln);					
+					myWriter.write("	}" + ln);			
+					
+					myWriter.write("	public void set" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "ListRelation(List<" + getNameProperty(tableName, true) +"> list" + getNameProperty(tableName, true) + ")" + ln);
+					myWriter.write("	{" + ln);
+					myWriter.write("		List<Integer> list" + getNameProperty(relation.getCOLUMN_NAME(), true) + " = list" + getNameProperty(tableName, true) +".stream().map(obj -> obj.get" + getNameProperty(getFieldPrimeryKey(entitiName), true) + "()).collect(Collectors.toList());" + ln);
+					myWriter.write("		Optional<List<" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) +">> list"+ getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + " = " + getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + "Repository.findBy" + getNameProperty(relation.getREFERENCED_COLUMN_NAME(), true) + "In(list" + getNameProperty(relation.getCOLUMN_NAME(), true) + ");"  + ln);
+					myWriter.write("		if(list" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + ".isPresent() && list" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + ".get().size()>0)" + ln);
+					myWriter.write("		{" + ln);
+					myWriter.write("			for(" + getNameProperty(tableName, true) + " " + getNameProperty(tableName, false) + " : list" + getNameProperty(tableName, true) + ")" + ln);
+					myWriter.write("			{" + ln);
+					myWriter.write("				List<" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "> list" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "2 = list" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + ".get().stream().filter(obj -> obj.get" + getNameProperty(relation.getREFERENCED_COLUMN_NAME(), true) + "().equals(" + getNameProperty(tableName, false) + ".get" + getNameProperty(relation.getCOLUMN_NAME(), true) + "())).collect(Collectors.toList());" + ln);
+					myWriter.write("				if(list" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "2 != null && list" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "2.size()>0)" + ln);
+					myWriter.write("					" + getNameProperty(tableName, false) + ".set" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "(list" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "2.get(0));" + ln);
+					myWriter.write("			}" + ln);
+					myWriter.write("		}" + ln);
+					myWriter.write("	}" + ln);
+
 				}
 			}
 
@@ -738,37 +757,21 @@ public class GeneratorApplication
 						{
 							var entity = getNameEntity(tableName, relation.getTABLE_NAME());
 							if(entity != "")
-							{
-								// myWriter.write("	public void setList" + getNameProperty(relation.getTABLE_NAME(), true) + "Relation ("  + getNameProperty(tableName, true) + " " + getNameProperty(tableName, false) + ")" + ln);
-								// myWriter.write("	{" + ln);
-								// myWriter.write("		var list" + getNameProperty(relation.getTABLE_NAME(), true) + " = " + getNameProperty(relation.getTABLE_NAME(), false) + "Repository.findBy" + getNameProperty(tableName, true) + "(" + getNameProperty(tableName, false) + ".get" + getNameProperty(tableName, true) + "());" + ln);
-								// myWriter.write("		if(list" + getNameProperty(relation.getTABLE_NAME(), true) + ".isPresent())" + ln);
-								// myWriter.write("			" + getNameProperty(tableName, false) + ".setList"+ getNameProperty(relation.getTABLE_NAME(), true) + "("+ getNameProperty(relation.getTABLE_NAME(), true) + ".get());" + ln);
-								// myWriter.write("	}" + ln);
+							{							
+								myWriter.write("	public void setList" + getNameProperty(entity, true) + "Relation("  + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + " " +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ")" + ln);
+								myWriter.write("	{" + ln);
+								myWriter.write("		Optional<List<" + getNameProperty(entity, true) + ">> list" + getNameProperty(entity, true) + " = " + getNameProperty(entity, false) + "Repository.findBy"  + getNameProperty(relation.getCOLUMN_NAME(), true) + "("  + getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ".get"  + getNameProperty(relation.getREFERENCED_COLUMN_NAME(), true) + "());" + ln);
+								myWriter.write("		if(list" + getNameProperty(entity, true) + ".isPresent())" + ln);
+								myWriter.write("			" +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ".setList" + getNameProperty(entity, true) + "(list" + getNameProperty(entity, true) + ".get());" + ln);
+								myWriter.write("	}" + ln);
+								myWriter.write("	" + ln);
+
 							}
 						}
 					}
 			
 				}
 			}
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("	" + ln);
 			myWriter.write("	" + ln);
 			myWriter.write("	private "+ getNameProperty(tableName, true) +"ResponseError check"+ getNameProperty(tableName, true) +"ResponseError ("+ getNameProperty(tableName, true) +"Request "+ getNameProperty(tableName, false) +"Request)" + ln);
 			myWriter.write("	{" + ln);
