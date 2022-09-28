@@ -536,7 +536,7 @@ public class GeneratorApplication
 			myWriter.write("	Optional<List<" + getNameProperty(tableName, true) + ">> findBy"  + getNameProperty(getFieldPrimeryKey(entitiName), true) + "In(List<"+ getTypePrimeryKey(entitiName) +"> list"+ getNameProperty(getFieldPrimeryKey(entitiName), true) + ");" + ln);
 			for(Relations relation : getSingleRelation( tableName))
 			{
-				myWriter.write("	Optional<List<" + getNameProperty(relation.getTABLE_NAME(), true) + ">> findBy"+ getNameProperty(relation.getCOLUMN_NAME(), true) +"(Integer "+ getNameProperty(relation.getCOLUMN_NAME(), false) + ");" + ln);
+				myWriter.write("	Optional<List<" + getNameProperty(relation.getTABLE_NAME(), true) + ">> findBy"+ getNameProperty(relation.getCOLUMN_NAME(), true) + "(Integer "+ getNameProperty(relation.getCOLUMN_NAME(), false) + ");" + ln);
 				
 			}
 
@@ -746,10 +746,37 @@ public class GeneratorApplication
 				{
 					myWriter.write("	public void setList" + getNameProperty(relation.getTABLE_NAME(), true) + "Relation ("  + getNameProperty(tableName, true) + " " + getNameProperty(tableName, false) + ")" + ln);
 					myWriter.write("	{" + ln);
-					myWriter.write("		var list" + getNameProperty(relation.getTABLE_NAME(), true) + " = " + getNameProperty(relation.getTABLE_NAME(), false) + "Repository.findById" + getNameProperty(tableName, true) + "(" + getNameProperty(tableName, false) + ".get" + getNameProperty(getFieldPrimeryKey(entitiName), true) + "());" + ln);
+					myWriter.write("		var list" + getNameProperty(relation.getTABLE_NAME(), true) + " = " + getNameProperty(relation.getTABLE_NAME(), false) + "Repository.findById" + getNameProperty(relation.getCOLUMN_NAME(), true) + "(" + getNameProperty(tableName, false) + ".get" + getNameProperty(getFieldPrimeryKey(entitiName), true) + "());" + ln);
 					myWriter.write("		if(list" + getNameProperty(relation.getTABLE_NAME(), true) + ".isPresent())" + ln);
 					myWriter.write("			" + getNameProperty(tableName, false) + ".setList"+ getNameProperty(relation.getTABLE_NAME(), true) + "(list"+ getNameProperty(relation.getTABLE_NAME(), true) + ".get());" + ln);
 					myWriter.write("	}" + ln);
+
+					myWriter.write("	public void setList" + getNameProperty(relation.getTABLE_NAME(), true) + "List"  + getNameProperty(tableName, true) + "Relation (List<"  + getNameProperty(tableName, true) + "> list"  + getNameProperty(tableName, true) + ")" + ln);
+					myWriter.write("	{" + ln);
+					myWriter.write("		List<" + getTypePrimeryKey(entitiName) + "> list" + getNameProperty(relation.getREFERENCED_COLUMN_NAME(), true) + " = list"  + getNameProperty(tableName, true) + ".stream().map(car -> car.get" + getNameProperty(getFieldPrimeryKey(entitiName), true) + "()).collect(Collectors.toList());" + ln);
+					myWriter.write("		var list" + getNameProperty(relation.getTABLE_NAME(), true) + " = " + getNameProperty(relation.getTABLE_NAME(), false) + "Repository.findBy" + getNameProperty(relation.getCOLUMN_NAME(), true) + "In(list" + getNameProperty(relation.getREFERENCED_COLUMN_NAME(), true) + ");" + ln);
+					myWriter.write("		if(list" + getNameProperty(relation.getTABLE_NAME(), true) + ".isPresent())" + ln);
+					myWriter.write("		{" + ln);
+					myWriter.write("			for("  + getNameProperty(tableName, true) + " "  + getNameProperty(tableName, false) + " : list"  + getNameProperty(tableName, true) + ")" + ln);
+					myWriter.write("			{" + ln);
+					myWriter.write("				List<" + getNameProperty(relation.getTABLE_NAME(), true) + "> list"  + getNameProperty(relation.getTABLE_NAME(), true) + "Filtred = list" + getNameProperty(relation.getTABLE_NAME(), true) + ".get().stream().filter(obj -> obj.get" + getNameProperty(relation.getCOLUMN_NAME(), true) + "().equals(" + getNameProperty(tableName, false) + ".get" + getNameProperty(getFieldPrimeryKey(entitiName), true) + "())).collect(Collectors.toList());" + ln);
+					myWriter.write("				if(list"  + getNameProperty(relation.getTABLE_NAME(), true) + "Filtred != null && list"  + getNameProperty(relation.getTABLE_NAME(), true) + "Filtred.size()>0)" + ln);
+					myWriter.write("					"  + getNameProperty(tableName, false) + ".setList" + getNameProperty(relation.getTABLE_NAME(), true) + "(list"  + getNameProperty(relation.getTABLE_NAME(), true) + "Filtred);" + ln);
+					myWriter.write("			}" + ln);
+					myWriter.write("		}" + ln);
+					myWriter.write("	}" + ln);
+
+
+
+
+
+
+
+
+
+
+
+
 					if(checkManyToMany(relation.getTABLE_NAME(), tableName,0))
 					{
 						var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
@@ -913,30 +940,6 @@ public class GeneratorApplication
 	private static List<Relations> getSingleRelation(String tableName)
 	{
 		List<Relations> tablesname = listRelation.stream().filter(r -> r.getTABLE_NAME().equals(tableName)).collect(Collectors.toList());
-//		try
-//		{
-//			Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root");  
-//			Statement stmt = con.createStatement(); 
-//			String sql = " SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = \"" +  dataBaseName + "\" AND TABLE_NAME = \"" + tableName + "\" AND REFERENCED_COLUMN_NAME IS NOT NULL;";
-//			
-//			ResultSet rs = stmt.executeQuery(sql );			
-//			
-//			while (rs.next())
-//			{
-//				Relations myRelations = new Relations();
-//				myRelations.setCOLUMN_NAME(rs.getString("COLUMN_NAME"));
-//				myRelations.setCONSTRAINT_NAME(rs.getString("CONSTRAINT_NAME"));
-//				myRelations.setREFERENCED_TABLE_NAME(rs.getString("REFERENCED_TABLE_NAME"));
-//				myRelations.setREFERENCED_COLUMN_NAME(rs.getString("REFERENCED_COLUMN_NAME"));
-//				myRelations.setTABLE_NAME(rs.getString("TABLE_NAME"));
-//				tablesname.add(myRelations);
-//			}
-//			con.close();
-//		}
-//		catch(Exception e)
-//		{
-//			System.out.println(e);
-//		}
 		return tablesname;
 	}
 	private  static String getNameProperty(String propetyName, Boolean isClass)
