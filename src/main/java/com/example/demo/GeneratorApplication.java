@@ -537,6 +537,7 @@ public class GeneratorApplication
 			for(Relations relation : getSingleRelation( tableName))
 			{
 				myWriter.write("	Optional<List<" + getNameProperty(relation.getTABLE_NAME(), true) + ">> findBy"+ getNameProperty(relation.getCOLUMN_NAME(), true) + "(Integer "+ getNameProperty(relation.getCOLUMN_NAME(), false) + ");" + ln);
+				myWriter.write("	Optional<List<" + getNameProperty(relation.getTABLE_NAME(), true) + ">> findBy"+ getNameProperty(relation.getCOLUMN_NAME(), true) + "In(List<Integer> list"+ getNameProperty(relation.getCOLUMN_NAME(), true) + ");" + ln);
 				
 			}
 
@@ -607,6 +608,7 @@ public class GeneratorApplication
 				{
 					listImport.add(relation.getTABLE_NAME());
 					myWriter.write("import "+packageName+".repository."+ getNameProperty(relation.getTABLE_NAME(), true) +"Repository;" + ln);
+					myWriter.write("import "+packageName+".entity."+ getNameProperty(relation.getTABLE_NAME(), true) +";" + ln);
 				}
 			}
 			myWriter.write("import "+packageName+".security.jwt.JwtUtils;" + ln);
