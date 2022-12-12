@@ -69,6 +69,7 @@ public class GeneratorApplication
 		String pathRequest =    path + "payload\\request\\";
 		String pathRepository = path + "repository\\";
 		String pathService =    path + "service\\";
+		String pathRepositoryEm = path + "repositoryEm\\";
 		
 		files.add(pathController);
 		files.add(pathEntity);
@@ -77,6 +78,7 @@ public class GeneratorApplication
 		files.add(pathRequest);
 		files.add(pathRepository);
 		files.add(pathService);
+		files.add(pathRepositoryEm);
 	}
 	private static void createFilesController(EntityName entitiName )
 	{
@@ -572,6 +574,40 @@ public class GeneratorApplication
 
 		}
 	}
+	private static void createFilesRepositoryEm(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(7) + getNameProperty(tableName, true) + "RepositoryEm.java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package "+packageName+".repository;" + ln);
+			
+			myWriter.write("import org.springframework.stereotype.Repository;" + ln);
+			myWriter.write("import javax.persistence.TypedQuery;" + ln);
+			myWriter.write("import javax.persistence.PersistenceContext;" + ln);
+			myWriter.write("import javax.persistence.EntityManager;" + ln);
+			myWriter.write("import java.util.List;" + ln);
+			myWriter.write("import "+packageName+".entity."+ getNameProperty(tableName, true) +";" + ln);
+			
+			myWriter.write("@Repository" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"RepositoryEm"  + ln);
+			myWriter.write("{" + ln);
+			myWriter.write("	 @PersistenceContext" + ln);
+			myWriter.write("	 private EntityManager entityManager;" + ln);
+			myWriter.write("	 public List<"+ getNameProperty(tableName, true) +"> findAll() " + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		TypedQuery<"+ getNameProperty(tableName, true) +"> query = entityManager.createQuery(\"SELECT * FROM "+ getNameProperty(tableName, false) +" \", "+ getNameProperty(tableName, true) +".class);" + ln);
+			myWriter.write("	}" + ln);
+			myWriter.write("	" + ln);
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
 	private static void createFilesService(EntityName entitiName )
 	{
 		String tableName = entitiName.getName();
@@ -824,6 +860,7 @@ public class GeneratorApplication
 		createFilesError(entitiName);
 		createFilesRequest(entitiName);
 		createFilesRepository(entitiName);
+		createFilesRepositoryEm(entitiName);
 		createFilesService(entitiName);		
 	}
 	private static void createFolderProgect(String tableName)
