@@ -17,8 +17,8 @@ public class GeneratorApplication
 {
 	private static String ln = System.getProperty( "line.separator" );
 	private static List<String> files = new ArrayList<>();
-	private static String dataBaseName = "marketplace";
-	private static String packageName = "marketplace";
+	private static String dataBaseName = "big_open";
+	private static String packageName = "bigopen";
 	private static String propertyIsDeletedName = "is_deleted";
 	private static List<String> listTablesName = getListTable();
 	private static List<EntityName> listEntityName = entityFiles();
@@ -69,6 +69,7 @@ public class GeneratorApplication
 		String pathRequest =    path + "payload\\request\\";
 		String pathRepository = path + "repository\\";
 		String pathService =    path + "service\\";
+		String pathFilter =   path + "payload\\filter\\";
 		
 		files.add(pathController);
 		files.add(pathEntity);
@@ -77,6 +78,7 @@ public class GeneratorApplication
 		files.add(pathRequest);
 		files.add(pathRepository);
 		files.add(pathService);
+		files.add(pathFilter);
 	}
 	private static void createFilesController(EntityName entitiName )
 	{
@@ -156,7 +158,7 @@ public class GeneratorApplication
 			myWriter.write("import javax.persistence.OneToMany;" + ln);
 			myWriter.write("import javax.persistence.ManyToMany;" + ln);	
 			myWriter.write("import java.util.List;" + ln);
-			myWriter.write("import org.springframework.data.geo.Point;" + ln);
+			
 			myWriter.write("import java.time.LocalDateTime;" + ln);
 			myWriter.write("import lombok.Data;" + ln);
 			myWriter.write("import lombok.AllArgsConstructor;" + ln);
@@ -227,6 +229,42 @@ public class GeneratorApplication
 		catch(Exception e)
 		{ System.out.println(e);}
 	}
+	private static void createFilesFilter(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			String strpath = files.get(7) + getNameProperty(tableName, true) + "Filter.java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package "+packageName+".payload.filter;" + ln);
+			myWriter.write("import lombok.AllArgsConstructor;" + ln);
+			myWriter.write("import lombok.Data;" + ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.StringFilter;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.IntegerFilter;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.DoubleFilter;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.LocalDateTimeFilter;"+ ln);
+			myWriter.write("import lombok.NoArgsConstructor;" + ln);
+			myWriter.write("@AllArgsConstructor" + ln);
+			myWriter.write("@NoArgsConstructor" + ln);
+			myWriter.write("@Data" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"Filter" + ln);	
+			myWriter.write("{" + ln);
+			for(EntityProperty property : entitiName.getListEntityProperty())
+			{
+				if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
+				{
+					myWriter.write("	private " + getTypeProperty(property.getType())+ "Filter " + getNameProperty(property.getField(), false)+ ";" + ln) ;
+				}				
+			}
+			
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
 	private static void createFilesResponse(EntityName entitiName )
 	{
 		String tableName = entitiName.getName();
@@ -240,7 +278,7 @@ public class GeneratorApplication
 			myWriter.write("import java.util.List;" + ln);
 			myWriter.write("import java.time.LocalDateTime;" + ln);
 			myWriter.write("import lombok.NoArgsConstructor;" + ln);
-			myWriter.write("import org.springframework.data.geo.Point;" + ln);
+			
 			myWriter.write("@AllArgsConstructor" + ln);
 			myWriter.write("@NoArgsConstructor" + ln);
 			myWriter.write("@Data" + ln);
@@ -436,7 +474,7 @@ public class GeneratorApplication
 			myWriter.write("import lombok.Data;" + ln);
 			myWriter.write("import java.time.LocalDateTime;" + ln);
 			myWriter.write("import java.util.List;" + ln);
-			myWriter.write("import org.springframework.data.geo.Point;" + ln);			
+						
 			myWriter.write("import lombok.NoArgsConstructor;" + ln);
 			myWriter.write("@AllArgsConstructor" + ln);
 			myWriter.write("@NoArgsConstructor" + ln);
@@ -619,6 +657,7 @@ public class GeneratorApplication
 	{
 		createFilesEntity(entitiName);
 		createFilesController(entitiName);
+		createFilesFilter(entitiName);
 		createFilesResponse(entitiName);
 		createFilesResponseFindById(entitiName);
 		createFilesResponseList(entitiName);
@@ -632,7 +671,6 @@ public class GeneratorApplication
 	{
 		try
 		{ 
-			
 			for(String fileName : files)
 			{
 				String strpath = fileName + getNameProperty(tableName, true) + ".java";
@@ -650,8 +688,6 @@ public class GeneratorApplication
 					file.createNewFile();
 				}
 			}
-			
-			
 		}
 		catch(Exception e)
 		{ System.out.println(e);}
@@ -662,9 +698,6 @@ public class GeneratorApplication
 		try
 		{  
 			Class.forName("com.mysql.cj.jdbc.Driver");  
-			// static List<String> tablesName1 = tablesName;
-			
-
 			for(EntityName entitiName: listEntityName)
 			{				
 				createFolderProgect(entitiName.getName());
@@ -731,32 +764,7 @@ public class GeneratorApplication
 	}
 	private static List<Relations> getSingleRelation(String tableName)
 	{
-		List<Relations> tablesname = listRelation.stream().filter(r -> r.getTABLE_NAME().equals(tableName)).collect(Collectors.toList());
-//		try
-//		{
-//			Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + dataBaseName,"root","root");  
-//			Statement stmt = con.createStatement(); 
-//			String sql = " SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = \"" +  dataBaseName + "\" AND TABLE_NAME = \"" + tableName + "\" AND REFERENCED_COLUMN_NAME IS NOT NULL;";
-//			
-//			ResultSet rs = stmt.executeQuery(sql );			
-//			
-//			while (rs.next())
-//			{
-//				Relations myRelations = new Relations();
-//				myRelations.setCOLUMN_NAME(rs.getString("COLUMN_NAME"));
-//				myRelations.setCONSTRAINT_NAME(rs.getString("CONSTRAINT_NAME"));
-//				myRelations.setREFERENCED_TABLE_NAME(rs.getString("REFERENCED_TABLE_NAME"));
-//				myRelations.setREFERENCED_COLUMN_NAME(rs.getString("REFERENCED_COLUMN_NAME"));
-//				myRelations.setTABLE_NAME(rs.getString("TABLE_NAME"));
-//				tablesname.add(myRelations);
-//			}
-//			con.close();
-//		}
-//		catch(Exception e)
-//		{
-//			System.out.println(e);
-//		}
-		return tablesname;
+		return listRelation.stream().filter(r -> r.getTABLE_NAME().equals(tableName)).collect(Collectors.toList());
 	}
 	private  static String getNameProperty(String propetyName, Boolean isClass)
 	{
@@ -765,7 +773,7 @@ public class GeneratorApplication
 		var compte = 0;
 		for(String str : tab)
 		{
-			if(isClass)
+			if(Boolean.TRUE.equals(isClass))
 				name += str.substring(0,1).toUpperCase() + str.substring(1,str.length());
 			else
 			{
@@ -786,7 +794,7 @@ public class GeneratorApplication
 		else if(type.indexOf("varchar")>=0)
 			myType = "String";
 		else if(type.equals("double"))
-			myType = "double";
+			myType = "Double";
 		else if(type.equals("date") || type.equals("datetime"))
 			myType = "LocalDateTime";
 		else if(type.equals("tinyint") || type.equals("tinyint(1)"))
