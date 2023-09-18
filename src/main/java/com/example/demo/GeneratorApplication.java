@@ -9,6 +9,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -70,6 +72,7 @@ public class GeneratorApplication
 		String pathRepository = path + "repository\\";
 		String pathService =    path + "service\\";
 		String pathFilter =   path + "payload\\filter\\";
+		String pathServiceImp =    path + "service_imp\\";
 		
 		files.add(pathController);
 		files.add(pathEntity);
@@ -79,6 +82,7 @@ public class GeneratorApplication
 		files.add(pathRepository);
 		files.add(pathService);
 		files.add(pathFilter);
+		files.add(pathServiceImp);
 	}
 	private static void createFilesController(EntityName entitiName )
 	{
@@ -249,6 +253,7 @@ public class GeneratorApplication
 			myWriter.write("import "+packageName+".payload.filter.operateur.StringFilter;"+ ln);
 			myWriter.write("import "+packageName+".payload.filter.operateur.IntegerFilter;"+ ln);
 			myWriter.write("import "+packageName+".payload.filter.operateur.DoubleFilter;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.BooleanFilter;"+ ln);
 			myWriter.write("import "+packageName+".payload.filter.operateur.LocalDateTimeFilter;"+ ln);
 			myWriter.write("import lombok.NoArgsConstructor;" + ln);
 			myWriter.write("@AllArgsConstructor" + ln);
@@ -599,8 +604,25 @@ public class GeneratorApplication
 						}
 					}
 				}
+				// if(!tableName.equals(relation.getTABLE_NAME()) && checkManyToMany(relation.getTABLE_NAME(), tableName,0))
+				// {
+				// 	var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
+				// 	if(listForeignKey.size() == 2)
+				// 	{
+				// 		var entity = getNameEntity(tableName, relation.getTABLE_NAME());
+				// 		if(!entity.isEmpty())
+				// 		{
+				// 			var myE = listEntityName.stream().filter(e -> e.getName().equals(relation.getREFERENCED_TABLE_NAME())).findFirst();
+				// 			if(myE.isPresent())
+				// 			{
+				// 				String primeryKey = getFieldPrimeryKey(myE.get());
+				// 				myWriter.write("	Optional<List<"+ getNameProperty(tableName, true) + ">> " +  "findBy" + getNameProperty(primeryKey, true) + getNameProperty(relation.getREFERENCED_TABLE_NAME(),true) + ln) ;
+				// 			}
+							
+				// 		}
+				// 	}
+				// }
 			}
-			//Optional<List<Fournisseur>> findByIdIn(List<Integer> listIfFournisseur);
 			myWriter.write("	" + ln);
 			myWriter.write("}" + ln);
 			myWriter.close();
@@ -610,54 +632,21 @@ public class GeneratorApplication
 
 		}
 	}
-	private static void createFilesRepositoryEm(EntityName entitiName )
-	{
-		String tableName = entitiName.getName();
-		try
-		{
-			String strpath = files.get(7) + getNameProperty(tableName, true) + "RepositoryEm.java";
-			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package "+packageName+".repository;" + ln);
-			
-			myWriter.write("import org.springframework.stereotype.Repository;" + ln);
-			myWriter.write("import javax.persistence.TypedQuery;" + ln);
-			myWriter.write("import javax.persistence.PersistenceContext;" + ln);
-			myWriter.write("import javax.persistence.EntityManager;" + ln);
-			myWriter.write("import java.util.List;" + ln);
-			myWriter.write("import "+packageName+".entity."+ getNameProperty(tableName, true) +";" + ln);
-			
-			myWriter.write("@Repository" + ln);
-			myWriter.write("public class "+ getNameProperty(tableName, true) +"RepositoryEm"  + ln);
-			myWriter.write("{" + ln);
-			myWriter.write("	 @PersistenceContext" + ln);
-			myWriter.write("	 private EntityManager entityManager;" + ln);
-			myWriter.write("	 public List<"+ getNameProperty(tableName, true) +"> findAll() " + ln);
-			myWriter.write("	{" + ln);
-			myWriter.write("		TypedQuery<"+ getNameProperty(tableName, true) +"> query = entityManager.createQuery(\"SELECT * FROM "+ getNameProperty(tableName, false) +" \", "+ getNameProperty(tableName, true) +".class);" + ln);
-			myWriter.write("	}" + ln);
-			myWriter.write("	" + ln);
-			myWriter.write("}" + ln);
-			myWriter.close();
-		}		
-		catch(Exception e)
-		{
-
-		}
-	}
-	private static void createFilesService(EntityName entitiName )
+	private static void createFilesServiceImp(EntityName entitiName )
 	{
 		String tableName = entitiName.getName();
 		try
 		{
 			var copyListRelation = listRelation;
 			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
-			String strpath = files.get(6) + getNameProperty(tableName, true) + "Service.java";
+			String strpath = files.get(8) + getNameProperty(tableName, true) + "ServiceImp.java";
 			FileWriter myWriter = new FileWriter(strpath);
-			myWriter.write("package "+packageName+".service;" + ln);
+			myWriter.write("package "+packageName+".service_imp;" + ln);
 			myWriter.write("import java.util.Optional;" + ln);
 			myWriter.write("import org.springframework.beans.factory.annotation.Autowired;" + ln);
 			myWriter.write("import org.springframework.stereotype.Service;" + ln);			//
 			myWriter.write("import "+packageName+".entity."+ getNameProperty(tableName, true) +";" + ln);
+			myWriter.write("import "+packageName+".payload.filter."+ getNameProperty(tableName, true) +"Filter;" + ln);
 			myWriter.write("import "+packageName+".payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
 			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"Response;" + ln);
 			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"ResponseFindById;" + ln);
@@ -682,19 +671,41 @@ public class GeneratorApplication
 					myWriter.write("import "+packageName+".repository."+ getNameProperty(relation.getTABLE_NAME(), true) +"Repository;" + ln);
 					myWriter.write("import "+packageName+".entity."+ getNameProperty(relation.getTABLE_NAME(), true) +";" + ln);
 				}
+				if(!tableName.equals(relation.getTABLE_NAME()) && checkManyToMany(relation.getTABLE_NAME(), tableName,0))
+				{
+					var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
+					if(listForeignKey.size() == 2)
+					{
+						var entity = getNameEntity(tableName, relation.getTABLE_NAME());
+						if(!entity.isEmpty())
+						{	
+							listImport.add(entity);
+							myWriter.write("import "+packageName+".entity."+ getNameProperty(entity, true) +";" + ln);
+							myWriter.write("import "+packageName+".repository."+ getNameProperty(entity, true) +"Repository;" + ln);
+						}
+					}
+				}
 			}
 			myWriter.write("import "+packageName+".security.jwt.JwtUtils;" + ln);
 			myWriter.write("import "+packageName+".utility.ObjectMapperUtility;" + ln);
 			myWriter.write("import "+packageName+".utility.Utility;" + ln);
+			myWriter.write("import "+packageName+".service."+ getNameProperty(tableName, true) + "Service;" + ln);
 			myWriter.write("import org.springframework.security.core.context.SecurityContextHolder;" + ln);
 			myWriter.write("import java.util.List;" + ln);
+			myWriter.write("import javax.persistence.Query;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.StringFilter;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.IntegerFilter;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.DoubleFilter;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.BooleanFilter;"+ ln);
+			myWriter.write("import "+packageName+".payload.filter.operateur.LocalDateTimeFilter;"+ ln);
+			myWriter.write("import javax.persistence.EntityManager;" + ln);
 			myWriter.write("import java.util.stream.Collectors;" + ln);
 			myWriter.write("import org.springframework.security.authentication.AuthenticationManager;" + ln);
 			myWriter.write("import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;" + ln);
 			myWriter.write("import org.springframework.security.core.Authentication;" + ln);
 			myWriter.write("import org.springframework.security.crypto.password.PasswordEncoder;" + ln);
 			myWriter.write("@Service" + ln);
-			myWriter.write("public class "+ getNameProperty(tableName, true) +"Service" + ln);
+			myWriter.write("public class "+ getNameProperty(tableName, true) +"ServiceImp implements "+ getNameProperty(tableName, true) + "Service" + ln);
 			myWriter.write("{" + ln);
 			myWriter.write("	@Autowired" + ln);
 			myWriter.write("	JwtUtils jwtUtils;" + ln);			
@@ -702,6 +713,12 @@ public class GeneratorApplication
 			myWriter.write("	AuthenticationManager authenticationManager;" + ln);
 			myWriter.write("	@Autowired" + ln);
 			myWriter.write("	PasswordEncoder encoder;" + ln);
+
+			myWriter.write("	@Autowired" + ln);
+			myWriter.write("	private EntityManager entityManager;" + ln);
+
+
+
 			myWriter.write("	@Autowired" + ln);
 			myWriter.write("	"+ getNameProperty(tableName, true) +"Repository "+ getNameProperty(tableName, false) +"Repository;" + ln);
 			List<String> listAutoWired = new ArrayList<>();
@@ -724,7 +741,42 @@ public class GeneratorApplication
 					myWriter.write("	" + getNameProperty(relation.getTABLE_NAME(), true) + "Repository " + getNameProperty(relation.getTABLE_NAME(), false) + "Repository;" + ln);	
 			
 				}
+				if(!tableName.equals(relation.getTABLE_NAME()) && checkManyToMany(relation.getTABLE_NAME(), tableName,0))
+				{
+					var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
+					if(listForeignKey.size() == 2)
+					{
+						var entity = getNameEntity(tableName, relation.getTABLE_NAME());
+						if(!entity.isEmpty())
+						{	
+							if(listAutoWired.stream().filter(str -> str.equals(entity)).count() == 0)
+							{
+								listAutoWired.add(entity);
+								myWriter.write("	@Autowired" + ln);
+								myWriter.write("	" + getNameProperty(entity, true) + "Repository " + getNameProperty(entity, false) + "Repository;" + ln);	
+							}
+						}
+					}
+				}
 			}
+			myWriter.write("	public List<"+ getNameProperty(tableName, true) +"> findByFilter(" + getNameProperty(tableName, true) +"Filter " + getNameProperty(tableName, false) + "Filter)" + ln);
+			myWriter.write("	{" + ln);
+			myWriter.write("		StringBuilder sb = new StringBuilder();" + ln);
+			for(EntityProperty property : entitiName.getListEntityProperty())
+			{
+				if(property.getKey().equals("PRI") || !property.getKey().equals("MUL"))
+					myWriter.write("	 	Utility.getPredicate(sb ,"+ getNameProperty(tableName, false) + "Filter.get" + getNameProperty(property.getField(), true) + "(), \"" + getNameProperty(tableName, true) + "." + getNameProperty(property.getField(), false) + "\", " + getTypeProperty(property.getType()) + "Filter.class.getName());"+ ln);
+			}
+			myWriter.write("		 String sql = \"SELECT " + getNameProperty(tableName, true) + " FROM " + getNameProperty(tableName, true) + " " + getNameProperty(tableName, true) + "\";" + ln);
+			myWriter.write("		 if(sb.length()>0)" + ln);
+			myWriter.write("		 {" + ln);
+			myWriter.write("		 	sql = sql.concat(\" WHERE \");" + ln);
+			myWriter.write("		 	sql = sql.concat(sb.toString());" + ln);
+			myWriter.write("		 }" + ln);
+			myWriter.write("		 Query query = entityManager.createQuery(sql, " + getNameProperty(tableName, true) + ".class);" + ln);
+			myWriter.write("		 return Utility.castList(" + getNameProperty(tableName, true) + ".class, query.getResultList());" + ln);
+			myWriter.write("	}" + ln);
+			
 			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseFindById findById(" + getTypePrimeryKey(entitiName) + " id)" + ln);
 			myWriter.write("	{" + ln);
 			myWriter.write("		Optional<"+ getNameProperty(tableName, true) +"> "+ getNameProperty(tableName, false) +" = "+ getNameProperty(tableName, false) +"Repository.findById(id);" + ln);
@@ -757,7 +809,7 @@ public class GeneratorApplication
 			myWriter.write("			catch(Exception e)" + ln);
 			myWriter.write("			{" + ln);
 			myWriter.write("				"+ getNameProperty(tableName, false) +"ResponseError.setHaveError(true);" + ln);
-			myWriter.write("				return  new "+ getNameProperty(tableName, true) +"ResponseSave(\"Erreur d'enregistrement\");" + ln);
+			myWriter.write("				return  new "+ getNameProperty(tableName, true) +"ResponseSave(\"Erreur d'enregistrsqlent\");" + ln);
 			myWriter.write("			}" + ln);
 			myWriter.write("		}" + ln);
 			myWriter.write("	}" + ln);
@@ -845,13 +897,20 @@ public class GeneratorApplication
 						if(listForeignKey.size() == 2)
 						{
 							var entity = getNameEntity(tableName, relation.getTABLE_NAME());
-							if(entity != "")
-							{							
+							if(!entity.isEmpty())
+							{	
+								String namRela =  getNameProperty(relation.getREFERENCED_TABLE_NAME(),true) + getNameProperty(entity, true);						
 								myWriter.write("	public void setList" + getNameProperty(entity, true) + "Relation("  + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + " " +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ")" + ln);
 								myWriter.write("	{" + ln);
-								myWriter.write("		Optional<List<" + getNameProperty(entity, true) + ">> list" + getNameProperty(entity, true) + " = " + getNameProperty(entity, false) + "Repository.findBy"  + getNameProperty(relation.getCOLUMN_NAME(), true) + "("  + getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ".get"  + getNameProperty(relation.getREFERENCED_COLUMN_NAME(), true) + "());" + ln);
-								myWriter.write("		if(list" + getNameProperty(entity, true) + ".isPresent())" + ln);
-								myWriter.write("			" +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ".setList" + getNameProperty(entity, true) + "(list" + getNameProperty(entity, true) + ".get());" + ln);
+								myWriter.write("		var list" + namRela +" = " + getNameProperty(relation.getREFERENCED_TABLE_NAME(),false) + getNameProperty(entity, true) + "Repository.findById" + getNameProperty(entity, true) + "(" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ".getId());" + ln);
+								myWriter.write("		if(list" + namRela + ".isPresent())" + ln);
+								myWriter.write("		{" + ln);
+								myWriter.write("			var listId = list" + namRela + ".get().stream().map(ac -> ac.getId()).collect(Collectors.toList());" + ln);
+								myWriter.write("			Optional<List<" + getNameProperty(entity, true) + ">> list"  + getNameProperty(entity, true) +  " = " + getNameProperty(entity, false) +  "Repository.findByIdIn(listId);" + ln);
+								myWriter.write("			if(list" + getNameProperty(entity, true) + ".isPresent())" + ln);
+								myWriter.write("				" + getNameProperty(relation.getREFERENCED_TABLE_NAME(),false) + ".setList" + getNameProperty(entity, true) + "(list" + getNameProperty(entity, true) + ".get());" + ln);
+								myWriter.write("		}" + ln);
+								
 								myWriter.write("	}" + ln);
 								myWriter.write("	" + ln);
 
@@ -885,6 +944,100 @@ public class GeneratorApplication
 
 		}
 	}
+	private static void createFilesService(EntityName entitiName )
+	{
+		String tableName = entitiName.getName();
+		try
+		{
+			var copyListRelation = listRelation;
+			var findListRelation = copyListRelation.stream().filter(relation -> relation.getREFERENCED_TABLE_NAME().equals(tableName)).collect(Collectors.toList());
+			String strpath = files.get(6) + getNameProperty(tableName, true) + "Service.java";
+			FileWriter myWriter = new FileWriter(strpath);
+			myWriter.write("package "+packageName+".service;" + ln);
+			myWriter.write("import java.util.Optional;" + ln);
+			myWriter.write("import org.springframework.beans.factory.annotation.Autowired;" + ln);
+			myWriter.write("import org.springframework.stereotype.Service;" + ln);			//
+			myWriter.write("import "+packageName+".entity."+ getNameProperty(tableName, true) +";" + ln);
+			myWriter.write("import "+packageName+".payload.request."+ getNameProperty(tableName, true) +"Request;" + ln);
+			myWriter.write("import "+packageName+".payload.filter."+ getNameProperty(tableName, true) +"Filter;" + ln);
+			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"Response;" + ln);
+			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"ResponseFindById;" + ln);
+			myWriter.write("import "+packageName+".payload.response."+ getNameProperty(tableName, true) +"ResponseSave;" + ln);
+			myWriter.write("import "+packageName+".payload.response.error."+ getNameProperty(tableName, true) +"ResponseError;" + ln);
+			myWriter.write("import "+packageName+".repository."+ getNameProperty(tableName, true) +"Repository;" + ln);
+			List<String> listImport = new ArrayList<>();
+			for(Relations relation : getSingleRelation( tableName))
+			{
+				if(listImport.stream().filter(str -> str.equals(relation.getREFERENCED_TABLE_NAME())).count() == 0)
+				{
+					listImport.add(relation.getREFERENCED_TABLE_NAME());
+					myWriter.write("import "+packageName+".repository."+ getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) +"Repository;" + ln);
+					myWriter.write("import "+packageName+".entity."+ getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) +";" + ln);
+				}
+			}
+			for(Relations relation : findListRelation)
+			{
+				if(listImport.stream().filter(str -> str.equals(relation.getTABLE_NAME())).count() == 0)
+				{
+					listImport.add(relation.getTABLE_NAME());
+					myWriter.write("import "+packageName+".repository."+ getNameProperty(relation.getTABLE_NAME(), true) +"Repository;" + ln);
+					myWriter.write("import "+packageName+".entity."+ getNameProperty(relation.getTABLE_NAME(), true) +";" + ln);
+				}
+			}
+			myWriter.write("import "+packageName+".security.jwt.JwtUtils;" + ln);
+			myWriter.write("import "+packageName+".utility.ObjectMapperUtility;" + ln);
+			myWriter.write("import "+packageName+".utility.Utility;" + ln);
+			myWriter.write("import org.springframework.security.core.context.SecurityContextHolder;" + ln);
+			myWriter.write("import java.util.List;" + ln);
+			myWriter.write("import java.util.stream.Collectors;" + ln);
+			myWriter.write("import org.springframework.security.authentication.AuthenticationManager;" + ln);
+			myWriter.write("import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;" + ln);
+			myWriter.write("import org.springframework.security.core.Authentication;" + ln);
+			myWriter.write("import org.springframework.security.crypto.password.PasswordEncoder;" + ln);
+			myWriter.write("@Service" + ln);
+			myWriter.write("public interface "+ getNameProperty(tableName, true) +"Service" + ln);
+			myWriter.write("{" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseFindById findById(" + getTypePrimeryKey(entitiName) + " id);" + ln);
+			myWriter.write("	public "+ getNameProperty(tableName, true) +"ResponseSave save("+ getNameProperty(tableName, true) +"Request "+ getNameProperty(tableName, false) +"Request);" + ln);
+			myWriter.write("	public String delete(" + getTypePrimeryKey(entitiName) + " id);" + ln);
+			myWriter.write("	public List<"+ getNameProperty(tableName, true) +"> findByFilter("+ getNameProperty(tableName, true) +"Filter "+ getNameProperty(tableName, false) +"Filter);" + ln);
+			for(Relations relation : getSingleRelation( tableName))
+			{
+				if(!tableName.equals(relation.getREFERENCED_TABLE_NAME()))
+				{
+					myWriter.write("	public void set" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "Relation(" + getNameProperty(tableName, true) +" " + getNameProperty(tableName, false) + ");" + ln);
+					myWriter.write("	public void set" + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + "ListRelation(List<" + getNameProperty(tableName, true) +"> list" + getNameProperty(tableName, true) + ");" + ln);
+				}
+			}
+			for(Relations relation : findListRelation)
+			{
+				if(!tableName.equals(relation.getTABLE_NAME()))
+				{
+					myWriter.write("	public void setList" + getNameProperty(relation.getTABLE_NAME(), true) + "Relation ("  + getNameProperty(tableName, true) + " " + getNameProperty(tableName, false) + ");" + ln);
+					myWriter.write("	public void setList" + getNameProperty(relation.getTABLE_NAME(), true) + "List"  + getNameProperty(tableName, true) + "Relation (List<"  + getNameProperty(tableName, true) + "> list"  + getNameProperty(tableName, true) + ");" + ln);
+					if(checkManyToMany(relation.getTABLE_NAME(), tableName,0))
+					{
+						var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
+						if(listForeignKey.size() == 2)
+						{
+							var entity = getNameEntity(tableName, relation.getTABLE_NAME());
+							if(entity != "")
+							{							
+								myWriter.write("	public void setList" + getNameProperty(entity, true) + "Relation("  + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + " " +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + ");" + ln);
+								myWriter.write("	" + ln);
+							}
+						}
+					}
+				}
+			}			
+			myWriter.write("}" + ln);
+			myWriter.close();
+		}		
+		catch(Exception e)
+		{
+
+		}
+	}
 	private static void createFilesProgect(EntityName entitiName)
 	{
 		createFilesEntity(entitiName);
@@ -897,7 +1050,7 @@ public class GeneratorApplication
 		createFilesError(entitiName);
 		createFilesRequest(entitiName);
 		createFilesRepository(entitiName);
-		createFilesRepositoryEm(entitiName);
+		createFilesServiceImp(entitiName);		
 		createFilesService(entitiName);		
 	}
 	private static void createFolderProgect(String tableName)
@@ -1031,7 +1184,7 @@ public class GeneratorApplication
 		else if(type.equals("date") || type.equals("datetime"))
 			myType = "LocalDateTime";
 		else if(type.equals("tinyint") || type.equals("tinyint(1)"))
-			myType = "boolean";
+			myType = "Boolean";
 		else if(type.equals("point"))
 			myType = "Point";
 		else
