@@ -1,6 +1,10 @@
 package com.example.demo;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,8 +13,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -25,13 +27,58 @@ public class GeneratorApplication
 	private static List<String> listTablesName = getListTable();
 	private static List<EntityName> listEntityName = entityFiles();
 	private static List<Relations> listRelation = new ArrayList<>();
+	private static List<String> listeNameEntityToMove = new ArrayList<>();
+	// ""
+	private static String urlAngularToMove = "C:\\\\Users\\\\ramib\\\\Desktop\\\\rami\\\\proget\\\\Big-Open\\\\Big-Open\\\\bigopen-front\\\\src\\\\app\\\\";
+	private static String urlJavaToMove = "";
 	public static void main(String[] args) 
 	{
 		SpringApplication.run(GeneratorApplication.class, args);
 		fillFiles();
 		setRelation();
 		createEntity();
-		
+		addNewFile();
+	}
+	private static void addNewFile()
+	{
+		// listeNameEntityToMove.add("Accueil");
+		// listeNameEntityToMove.add("AccueilType");
+		// listeNameEntityToMove.add("ModelAffichage");
+		// listeNameEntityToMove.add("Article");
+		// listeNameEntityToMove.add("DetailContenuWeb");
+		var destination = "";
+		String strpath = "";
+		String [][] tabStr = {	{"10","payload\\response\\list\\","ResponseList.ts"},
+								{"12","payload\\response\\save\\","ResponseSave.ts"},
+								{"9","payload\\response\\","Response.ts"},
+								{"13","payload\\request\\","Request.ts"},
+								{"11","payload\\response\\error\\","ResponseError.ts"},
+								{"15","payload\\filter\\","Filter.ts"},
+								{"14","services\\",".service.ts"}};
+		for(String tableName  : listeNameEntityToMove)
+		{			
+			for(String[] ligne : tabStr)
+			{
+				if(ligne[0].compareTo("14") == 0)
+				{
+					tableName = tableName.toLowerCase();
+				}
+				destination = urlAngularToMove + ligne[1] + tableName + ligne[2];
+				File file = new File(destination);
+				try
+				{
+					Files.deleteIfExists(file.toPath());
+				}
+				catch(Exception a)
+				{}
+				if (!file.exists())
+				{
+					strpath = files.get(Integer.parseInt(ligne[0])) + tableName + ligne[2];
+					copierFichier(strpath, destination);
+				}
+			}
+
+		}
 	}
 	private static void setRelation()
 	{
@@ -1090,7 +1137,7 @@ public class GeneratorApplication
 			myWriter.write("	pager : Pager;" + ln);
 			myWriter.write("	message  : String;" + ln);
 			myWriter.write("}" + ln);
-			myWriter.close();
+			myWriter.close();			
 		}		
 		catch(Exception e)
 		{
@@ -1159,7 +1206,7 @@ public class GeneratorApplication
 				if(listImport.stream().filter(str -> str.equals(relation.getREFERENCED_TABLE_NAME())).count() == 0)
 				{
 					listImport.add(relation.getREFERENCED_TABLE_NAME());
-					myWriter.write("	" +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + " : "  + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true)+ prefix +  " = new " + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true)+ "();" + ln);
+					myWriter.write("	" +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + " : "  + getNameProperty(relation.getREFERENCED_TABLE_NAME(), true) + prefix + ";" + ln);
 				}
 			}
 			var listImport1 = new ArrayList<>();
@@ -1168,7 +1215,7 @@ public class GeneratorApplication
 				if(listImport1.stream().filter(str -> str.equals(relation.getTABLE_NAME())).count() == 0)
 				{
 					listImport1.add(relation.getTABLE_NAME());
-					myWriter.write("	list" +  getNameProperty(relation.getTABLE_NAME(), true) + " : "  + getNameProperty(relation.getTABLE_NAME(), true)+ prefix +  "[] = [];" + ln);
+					myWriter.write("	list" +  getNameProperty(relation.getTABLE_NAME(), true) + " : "  + getNameProperty(relation.getTABLE_NAME(), true)+ prefix +  "[];" + ln);
 					if(checkManyToMany(relation.getTABLE_NAME(), tableName,0))
 					{
 						var listForeignKey = getListForeignKey(relation.getTABLE_NAME());
@@ -1177,25 +1224,22 @@ public class GeneratorApplication
 							var entity = getNameEntity(tableName, relation.getTABLE_NAME());
 							if(entity != "" && listImport1.stream().filter(str -> str.equals(relation.getTABLE_NAME())).count() == 0)
 							{
-								myWriter.write("	list" +  getNameProperty(relation.getTABLE_NAME(), true) + " : "  + getNameProperty(relation.getTABLE_NAME(), true)+ prefix +  "[] = [];" + ln);
+								myWriter.write("	list" +  getNameProperty(relation.getTABLE_NAME(), true) + " : "  + getNameProperty(relation.getTABLE_NAME(), true)+ prefix +  "[];" + ln);
 							}
 						}
 					}
 				}
-				else
-				{
-					var s = listImport1;
-				}
 			}
 			myWriter.write("	constructor() " + ln);
 			myWriter.write("	{" + ln);
+			myWriter.write("		let undefinedValue;" + ln);
 			for(EntityProperty property : entitiName.getListEntityProperty())
 			{
-				myWriter.write("		this." +  getNameProperty(property.getField(), false) + "  = null;"   + ln);
+				myWriter.write("		this." +  getNameProperty(property.getField(), false) + "  = " + getInitValue(property.getType())  +";" + ln);
 			}
 			for(Relations relation : getSingleRelation( tableName))
 			{
-				myWriter.write("		this." +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + " = new " + getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) +  "();" + ln);
+				myWriter.write("		eval('this." +  getNameProperty(relation.getREFERENCED_TABLE_NAME(), false) + " =  {id : -1}');" + ln);
 			}
 			for(Relations relation : findListRelation)
 			{
@@ -1327,6 +1371,7 @@ public class GeneratorApplication
 			myWriter.write("import { Injectable } from '@angular/core';" + ln);
 			myWriter.write("import { GeneralService } from './general.service';" + ln);
 			myWriter.write("import { catchError } from 'rxjs/operators';" + ln);
+			myWriter.write("import { ActionTable } from '../shared/utility/entites/ActionTable';" + ln);
 			myWriter.write("import { Observable } from 'rxjs/internal/Observable';" + ln);
 			myWriter.write("import { of } from 'rxjs';" + ln);
 			
@@ -1334,17 +1379,20 @@ public class GeneratorApplication
 			myWriter.write("import { " + getNameProperty(tableName, true) + "Filter } from '../payload/filter/" + getNameProperty(tableName, true) + "Filter';" + ln);
 			myWriter.write("import {  "+ getNameProperty(tableName, true) + "Response } from '../payload/response/" + getNameProperty(tableName, true) + "Response';" + ln);
 			myWriter.write("import { " + getNameProperty(tableName, true) + "ResponseList } from '../payload/response/list/" + getNameProperty(tableName, true) + "ResponseList';" + ln);
-			myWriter.write("import { MatDialogRef } from '@angular/material/dialog';" + ln);
+			myWriter.write("import { MatDialog, MatDialogRef } from '@angular/material/dialog';" + ln);
 			myWriter.write("import { DialogComponent } from '../shared/utility/dialog/dialog.component';" + ln);
 			myWriter.write("import { " + getNameProperty(tableName, true) + "ResponseSave } from '../payload/response/save/" + getNameProperty(tableName, true) + "ResponseSave';" + ln);
 			myWriter.write("@Injectable({ providedIn: 'root'})" + ln);
 			myWriter.write("export class " + getNameProperty(tableName, true) + "Service " + ln);
 			myWriter.write("{" + ln);
-			myWriter.write("	constructor(private http: HttpClient,private generalService : GeneralService) { }" + ln);			
+			myWriter.write("	constructor(private http: HttpClient,private generalService : GeneralService, public dialog" + getNameProperty(tableName, true) + ": MatDialog) { }" + ln);			
 			myWriter.write("	modeModal = false;" + ln);
 			myWriter.write("	public url = this.generalService.url + \"/" + getNameProperty(tableName, false) + "/\";" + ln);
 			myWriter.write("	id" + getNameProperty(tableName, true) + " : number;" + ln);
+			myWriter.write("	idParametre : number;" + ln);
+			myWriter.write("	idModule : number;" + ln);
 			myWriter.write("	dialogRef" + getNameProperty(tableName, true) + " : MatDialogRef<any, any>;" + ln);
+			myWriter.write("	selected" + getNameProperty(tableName, true) + " : " + getNameProperty(tableName, true) + "Response [];" + ln);
 			myWriter.write("	erreur = ()=>{this.generalService.showSpinner = false;return of([]);}" + ln);
 			
 			myWriter.write("	findById(id : number, error?) : Observable<" + getNameProperty(tableName, true) + "Response>" + ln);
@@ -1357,25 +1405,15 @@ public class GeneratorApplication
 			myWriter.write("		return this.http.post<any>(this.url + \"findByFilter\" , " + getNameProperty(tableName, false) + "Filter, {headers : this.generalService.headers}).pipe(catchError(error || this.generalService.error));" + ln);
 			myWriter.write("	}" + ln);	
 
-			myWriter.write("	signin(" + getNameProperty(tableName, false) + " : " + getNameProperty(tableName, true) + "Request,error?): Observable<" + getNameProperty(tableName, true) + "Response>" + ln);
-			myWriter.write("	{" + ln);
-			myWriter.write("		return this.http.post<any>(this.url + \"signin\"," + getNameProperty(tableName, false) + " ).pipe(catchError(error || this.generalService.erreur));" + ln);
-			myWriter.write("	}" + ln);
-
 			myWriter.write("	save(" + getNameProperty(tableName, false) + " : " + getNameProperty(tableName, true) + "Request, error?) : Observable<" + getNameProperty(tableName, true) + "ResponseSave>" + ln);
 			myWriter.write("	{" + ln);
 			myWriter.write("		return this.http.put<any>(this.url + \"save\" , " + getNameProperty(tableName, false) + ", {headers : this.generalService.headers}).pipe(catchError(error || this.generalService.error));" + ln);
 			myWriter.write("	}" + ln);	
-
-			myWriter.write("	savePassword(" + getNameProperty(tableName, false) + " : " + getNameProperty(tableName, true) + "Request, error?) : Observable<" + getNameProperty(tableName, true) + "ResponseSave>" + ln);
-			myWriter.write("	{" + ln);
-			myWriter.write("		return this.http.put<any>(this.url + \"savePassword\" , " + getNameProperty(tableName, false) + ", {headers : this.generalService.headers}).pipe(catchError(error || this.generalService.error));" + ln);
-			myWriter.write("	}" + ln);
     
-			myWriter.write("	delete(event, id : number,fn, error?)" + ln);
+			myWriter.write("	delete(event : ActionTable, id : number,fn, error?)" + ln);
 			myWriter.write("	{" + ln);
-			myWriter.write("		let btnDel = event.component.icon == \"delete\";" + ln);
-			myWriter.write("		const dialogRef = this.generalService.dialog.open(DialogComponent,{data : this.generalService.getDataDelete(btnDel)})" + ln);
+			myWriter.write("		let btnDel = event.btn.icon == \"delete\";" + ln);
+			myWriter.write("		const dialogRef = this.generalService.dialog.open(DialogComponent,{data : this.generalService.getDataDelete(btnDel), hasBackdrop: false})" + ln);
 			myWriter.write("		dialogRef.afterClosed().subscribe(result => " + ln);
 			myWriter.write("		{" + ln);
 			myWriter.write("			if(result && result == \"ok\")" + ln);
@@ -1556,17 +1594,31 @@ public class GeneratorApplication
 			myType = type;
 		return myType;
 	}
+	private static String getInitValue(String type)
+	{
+		var myType = "";
+		if(type.equals("int"))
+			myType = "-1";
+		else if(type.indexOf("varchar")>=0 || type.indexOf("text")>=0)
+			myType = "\"\"";
+		else if(type.equals("double"))
+			myType = "-1";
+		else 
+			myType = "undefinedValue";
+	
+		return myType;
+	}
 	private  static String getTypePropertyAngular(String type)
 	{
 		var myType = "";
 		if(type.equals("int"))
-			myType = "number | null";
+			myType = "number";
 		else if(type.indexOf("varchar")>=0 || type.indexOf("text")>=0)
-			myType = "string | null";
+			myType = "string";
 		else if(type.equals("double"))
-			myType = "number | null";
+			myType = "number";
 		else if(type.equals("date") || type.equals("datetime"))
-			myType = "Date | null";
+			myType = "Date";
 		else if(type.equals("tinyint") || type.equals("tinyint(1)"))
 			myType = "boolean";
 		else
@@ -1664,4 +1716,22 @@ public class GeneratorApplication
 		}
 		return listForeignKey;
 	}
+	public static void copierFichier(String fichierSource, String fichierCible) 
+	{
+        try (BufferedReader reader = new BufferedReader(new FileReader(fichierSource));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(fichierCible)))
+		{
+
+            String ligne;
+            while ((ligne = reader.readLine()) != null) 
+			{
+                writer.write(ligne);
+                writer.newLine();  // Ajouter un saut de ligne
+            }
+        } 
+		catch (IOException e) 
+		{
+            System.err.println("Erreur lors de la copie du fichier : " + e.getMessage());
+        }
+    }
 }
